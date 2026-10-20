@@ -1,0 +1,11 @@
+{
+  "ownerName": "Owner",
+  "coordinatorName": "Coordinator",
+  "workspace": "",
+  "members": [
+    {"id": "agent_coordinator", "name": "Coordinator", "mode": "real", "profileId": "profile_api", "systemPrompt": "Answer clearly. Describe only work you actually performed. API chat alone has no file tools."}
+  ],
+  "profiles": [
+    {"id": "profile_api", "name": "My API", "providerType": "openai-compatible", "baseUrl": "https://YOUR-PROVIDER.example/v1", "model": "YOUR_MODEL_ID", "credentialRef": ""}
+  ]
+}

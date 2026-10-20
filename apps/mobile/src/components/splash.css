@@ -1,0 +1,197 @@
+/* 开屏：雾气玻璃 → 手指写出 Luma 和名字 → 画、雾、字一起淡出，露出底下已经备好的首页
+   只用 opacity / transform / mask，不做实时计算 */
+
+/* 盖在真正的首页上面；首页在开屏期间就已经加载好了 */
+.splash-root {
+  position: absolute;
+  inset: 0;
+  z-index: 60;
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: pointer;
+  outline: none;
+}
+
+.splash-root.is-leaving {
+  pointer-events: none;
+}
+
+.splash-stage {
+  position: absolute;
+  inset: 0;
+  background: #f6efe4;
+  transition: opacity 1.4s cubic-bezier(0.4, 0, 0.2, 1), transform 1.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.splash-root.is-leaving .splash-stage {
+  opacity: 0;
+  transform: scale(1.03);
+}
+
+/* 字比画早一点点化开，像玻璃上的水汽先散 */
+.splash-root.is-leaving .splash-writing {
+  opacity: 0;
+  transition: opacity 0.8s ease;
+}
+
+/* 原画和擦出的字共用同一套铺法，笔画里的画面才能和背后对齐 */
+.splash-painting,
+.splash-wiped {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.splash-painting {
+  position: absolute;
+  inset: 0;
+}
+
+/* ---------- 雾气玻璃 ---------- */
+.splash-fog {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  will-change: opacity, transform;
+}
+
+.splash-fog-base {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(250, 246, 240, 0.62) 0%, rgba(246, 239, 231, 0.74) 55%, rgba(244, 236, 230, 0.8) 100%);
+}
+
+.splash-fog-cloud {
+  position: absolute;
+  left: -25%;
+  right: -25%;
+  height: 70%;
+  animation: splash-fog-breathe 6s ease-in-out infinite alternate;
+}
+
+.splash-fog-a {
+  top: 5%;
+  background:
+    radial-gradient(ellipse 50% 35% at 30% 50%, rgba(255, 251, 246, 0.6), transparent 70%),
+    radial-gradient(ellipse 40% 30% at 78% 40%, rgba(252, 245, 242, 0.5), transparent 70%);
+}
+
+.splash-fog-b {
+  top: 40%;
+  background:
+    radial-gradient(ellipse 45% 30% at 65% 55%, rgba(255, 249, 245, 0.55), transparent 72%),
+    radial-gradient(ellipse 40% 26% at 20% 65%, rgba(248, 238, 238, 0.45), transparent 72%);
+  animation-delay: -3s;
+}
+
+@keyframes splash-fog-breathe {
+  from { transform: translate3d(-4%, 0, 0); }
+  to { transform: translate3d(4%, -2%, 0); }
+}
+
+/* ---------- 手指写的字 ---------- */
+.splash-writing {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.splash-line {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  /* 带软边的遮罩从左往右滑过，像手指一路划过去 */
+  -webkit-mask-image: linear-gradient(90deg, #000 0%, #000 47%, transparent 53%, transparent 100%);
+  mask-image: linear-gradient(90deg, #000 0%, #000 47%, transparent 53%, transparent 100%);
+  -webkit-mask-size: 220% 100%;
+  mask-size: 220% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: 100% 0;
+  mask-position: 100% 0;
+}
+
+.splash-root.is-ready .splash-line-1 {
+  animation: splash-write-luma 3.2s linear 0.5s both;
+}
+
+.splash-root.is-ready .splash-line-2 {
+  animation: splash-write-names 2.8s linear 3.6s both;
+}
+
+@keyframes splash-write-luma {
+  from { opacity: 1; -webkit-mask-position: 80% 0; mask-position: 80% 0; }
+  to { opacity: 1; -webkit-mask-position: 15% 0; mask-position: 15% 0; }
+}
+
+@keyframes splash-write-names {
+  from { opacity: 1; -webkit-mask-position: 85% 0; mask-position: 85% 0; }
+  to { opacity: 1; -webkit-mask-position: 8% 0; mask-position: 8% 0; }
+}
+
+.splash-wet,
+.splash-wiped {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Yellowtail', 'Great Vibes', 'Snell Roundhand', cursive;
+  white-space: nowrap;
+}
+
+.splash-line-1 .splash-wet,
+.splash-line-1 .splash-wiped {
+  font-size: clamp(88px, 27vw, 128px);
+  padding-bottom: 12vh;
+}
+
+.splash-line-2 .splash-wet,
+.splash-line-2 .splash-wiped {
+  font-size: clamp(32px, 9vw, 40px);
+  padding-top: 17vh;
+}
+
+.splash-wet span,
+.splash-wiped span {
+  letter-spacing: 0.01em;
+}
+
+/* 笔画边缘：一道很细的亮边加一圈淡淡的水汽，不往笔画里填白 */
+.splash-wet {
+  color: transparent;
+  text-shadow: none;
+}
+
+/* 笔画里透出没有雾的原画，压一层淡淡的暗色，像玻璃后面的真景
+   （不用 filter / transform，iPhone Safari 下 background-clip:text 才稳） */
+.splash-wiped {
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+/* ---------- 减少动态效果：字直接出现，雾也不飘 ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .splash-fog-cloud {
+    animation: none;
+  }
+  .splash-root.is-ready .splash-line-1,
+  .splash-root.is-ready .splash-line-2 {
+    animation: none;
+    opacity: 1;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+  .splash-stage {
+    transition: opacity 0.3s ease;
+  }
+  .splash-root.is-leaving .splash-stage {
+    transform: none;
+  }
+}
+
+/* Base appearance uses system fonts and neutral controls. */

@@ -1,0 +1,268 @@
+/* 首页睡莲池 —— 只动 transform / opacity，iPhone 上走合成层不发烫 */
+
+.home-pond {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  container-type: size;
+  pointer-events: none;
+}
+
+.home-pond-nav {
+  position: absolute;
+  inset: 0;
+}
+
+.home-pond-entry,
+.home-pond-decor {
+  position: absolute;
+}
+
+.home-pond-decor {
+  height: auto;
+  pointer-events: none;
+  user-select: none;
+  animation: home-pond-drift var(--drift-duration) ease-in-out var(--drift-delay) infinite;
+}
+
+.home-pond-entry {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* 点按区域比画面本身大一圈 */
+  padding: 6px;
+  margin: -6px;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  pointer-events: auto;
+  -webkit-tap-highlight-color: transparent;
+  border-radius: 3px;
+}
+
+.home-pond-entry:focus-visible {
+  outline: 2px solid #fff8d8;
+  outline-offset: 4px;
+}
+
+.home-pond-float {
+  position: relative;
+  display: block;
+  width: 100%;
+  animation: home-pond-drift var(--drift-duration) ease-in-out var(--drift-delay) infinite;
+}
+
+.home-pond-art {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: auto;
+  user-select: none;
+  /* 压一点饱和度，和底图的雾感对齐 */
+  filter: saturate(.9);
+  transition: transform .35s cubic-bezier(.25, .8, .25, 1), filter .6s ease;
+}
+
+/* 水面倒影式的软阴影，用渐变代替 drop-shadow 滤镜，省性能 */
+.home-pond-shadow {
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  bottom: -4%;
+  height: 34%;
+  border-radius: 3px;
+  background: radial-gradient(closest-side, #2b3d3a40, transparent);
+}
+
+.home-pond-entry:active .home-pond-art,
+.home-pond-entry[data-pressed] .home-pond-art {
+  transform: scale(.95) translateY(2px);
+}
+
+.home-pond-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: -2px;
+  color: #fff9ee;
+  line-height: 1;
+  text-shadow: none;
+  white-space: nowrap;
+}
+
+.home-pond-french {
+  font-size: clamp(17px, 5.4cqw, 24px);
+  line-height: 1.15;
+}
+
+.home-pond-cn {
+  margin-top: 1px;
+  font-family: 'Songti SC', 'Noto Serif SC', serif;
+  font-size: 11px;
+  letter-spacing: .18em;
+  opacity: .92;
+}
+
+.home-pond-entry[data-hero] .home-pond-french {
+  font-size: clamp(21px, 7cqw, 30px);
+}
+
+.home-pond-entry[data-hero] .home-pond-cn {
+  font-size: 12px;
+}
+
+/* 点一下：两圈水波从叶片中心荡开 */
+.home-pond-ripple {
+  position: absolute;
+  left: 50%;
+  top: 58%;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.home-pond-ripple span {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 120px;
+  height: 52px;
+  margin: -26px 0 0 -60px;
+  border-radius: 3px;
+  border: 1.5px solid #fffbeccc;
+  box-shadow: none;
+  opacity: 0;
+  animation: home-pond-ripple .42s ease-out forwards;
+}
+
+.home-pond-ripple span + span {
+  animation-delay: .1s;
+}
+
+/* 月夜：叶片沉进月光里，偏冷偏暗 */
+.home-pond[data-night="true"] .home-pond-art,
+.home-pond[data-night="true"] .home-pond-decor {
+  filter: brightness(.72) saturate(.7) hue-rotate(-8deg);
+}
+
+.home-pond[data-night="true"] .home-pond-label {
+  color: #eef0ff;
+}
+
+.home-pond[data-paused="true"] .home-pond-float,
+.home-pond[data-paused="true"] .home-pond-decor {
+  animation-play-state: paused;
+}
+
+/* ---------- 开屏淡出时首页浮上来 ----------
+   开屏期间首页已经在底下加载好，这里只负责"藏着 → 慢慢浮现"。
+   平时从别的页面回首页不带 data-veiled，直接显示，不重播。 */
+.home-pond-entry,
+.home-root .home-intro {
+  transition:
+    opacity 1.1s ease var(--intro-delay, 0s),
+    transform 1.3s cubic-bezier(.2, .7, .2, 1) var(--intro-delay, 0s);
+}
+
+.home-pond-decor,
+.home-root .home-fireflies {
+  transition: opacity 1.6s ease .6s;
+}
+
+.home-pond[data-veiled] .home-pond-entry,
+.home-root[data-veiled] .home-intro {
+  opacity: 0;
+  transform: translate3d(0, 14px, 0) scale(.96);
+  transition: none;
+}
+
+.home-pond[data-veiled] .home-pond-decor,
+.home-root[data-veiled] .home-fireflies {
+  opacity: 0 !important;
+  transition: none;
+}
+
+/* 藏着的时候别白白漂，省电 */
+.home-pond[data-veiled] .home-pond-float,
+.home-pond[data-veiled] .home-pond-decor {
+  animation-play-state: paused;
+}
+
+/* ---------- 留声机旁的小唱片：有歌在放时出现，点开正在播放 ---------- */
+.home-pond-record {
+  position: absolute;
+  right: 1.5cqw;
+  top: 28cqh;
+  width: min(13cqw, 7cqh);
+  aspect-ratio: 1;
+  padding: 6px;
+  margin: -6px;
+  border: 0;
+  background: none;
+  pointer-events: auto;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: opacity 1.2s ease .9s;
+}
+
+.home-pond[data-veiled] .home-pond-record { opacity: 0; transition: none; }
+
+.home-pond-record:focus-visible { outline: 2px solid #fff8d8; outline-offset: 2px; border-radius: 3px; }
+
+.home-pond-record-disc {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 3px;
+  overflow: hidden;
+  background: radial-gradient(circle, #f4ede2 0 13%, #2d2730 14% 32%, #3b333e 33% 100%);
+  box-shadow: none;
+  animation: home-pond-spin 9s linear infinite;
+  animation-play-state: paused;
+}
+
+.home-pond-record[data-playing] .home-pond-record-disc { animation-play-state: running; }
+
+.home-pond-record-disc img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  -webkit-mask: radial-gradient(circle, transparent 0 12%, #000 13%);
+  mask: radial-gradient(circle, transparent 0 12%, #000 13%);
+}
+
+@keyframes home-pond-spin { to { transform: rotate(360deg); } }
+
+@keyframes home-pond-drift {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+  30% { transform: translate3d(2px, -4px, 0) rotate(var(--drift-tilt)); }
+  65% { transform: translate3d(-2px, 2px, 0) rotate(calc(var(--drift-tilt) * -.6)); }
+}
+
+@keyframes home-pond-ripple {
+  0% { transform: scale(.2); opacity: .9; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+
+/* 系统开了"减少动态效果"：叶片静止，不出水波 */
+@media (prefers-reduced-motion: reduce) {
+  .home-pond-float,
+  .home-pond-decor,
+  .home-pond-ripple span,
+  .home-pond-record-disc {
+    animation: none;
+  }
+  .home-pond-art {
+    transition: none;
+  }
+  .home-pond-entry,
+  .home-root .home-intro {
+    transition: opacity .3s ease;
+  }
+  .home-pond[data-veiled] .home-pond-entry,
+  .home-root[data-veiled] .home-intro {
+    transform: none;
+  }
+}
+
+/* Base appearance uses system fonts and neutral controls. */

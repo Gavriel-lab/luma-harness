@@ -1,0 +1,13 @@
+{
+  "name": "antigravity-bridge-adapter",
+  "version": "1.0.0",
+  "description": "Worker Antigravity Bridge Adapter for Xiaowu Workbench",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "node --test tests/*.test.js",
+    "start": "node src/index.js"
+  },
+  "author": "Worker",
+  "license": "ISC"
+}

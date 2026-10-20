@@ -1,0 +1,49 @@
+.home-fireflies {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  overflow: hidden;
+  pointer-events: none;
+  contain: strict;
+}
+
+.home-firefly {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  animation: home-firefly-drift var(--fly-duration) ease-in-out var(--fly-delay) infinite;
+}
+
+.home-firefly-glow {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 3px;
+  background: radial-gradient(circle, #fffde0 0 5%, #ffeb9e 9%, #ffe38ab3 16%, #f5d36b38 34%, transparent 68%);
+  animation: home-firefly-glimmer var(--fly-pulse) ease-in-out var(--fly-delay) infinite;
+}
+
+.home-fireflies[data-paused="true"] .home-firefly,
+.home-fireflies[data-paused="true"] .home-firefly-glow {
+  animation-play-state: paused;
+}
+
+@keyframes home-firefly-drift {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(var(--fly-scale)); }
+  28% { transform: translate3d(var(--fly-x), calc(var(--fly-y) * .45), 0) scale(var(--fly-scale)); }
+  57% { transform: translate3d(calc(var(--fly-x) * .35), var(--fly-y), 0) scale(var(--fly-scale)); }
+  79% { transform: translate3d(calc(var(--fly-x) * -.3), calc(var(--fly-y) * .5), 0) scale(var(--fly-scale)); }
+}
+
+@keyframes home-firefly-glimmer {
+  0%, 100% { opacity: .22; }
+  40% { opacity: .95; }
+  70% { opacity: .45; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-fireflies { display: none; }
+  .home-firefly, .home-firefly-glow { animation: none; }
+}
+
+/* Base appearance uses system fonts and neutral controls. */

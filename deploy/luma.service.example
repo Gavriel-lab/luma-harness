@@ -1,0 +1,23 @@
+[Unit]
+Description=Luma Harness authoritative host
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=luma
+Group=luma
+WorkingDirectory=/srv/luma/luma-harness
+Environment=LUMA_HEADLESS=1
+Environment=LUMA_DATA_DIR=/srv/luma/data
+Environment=LUMA_WORKSPACE=/srv/luma/workspace
+Environment=LUMA_CONFIG=/srv/luma/luma.config.json
+ExecStart=/usr/bin/xvfb-run -a /usr/bin/npm start
+Restart=on-failure
+RestartSec=10
+TimeoutStopSec=45
+KillSignal=SIGTERM
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

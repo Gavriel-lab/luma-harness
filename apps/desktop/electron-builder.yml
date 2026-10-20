@@ -1,0 +1,25 @@
+appId: dev.luma.harness
+productName: Luma Harness
+electronDist: node_modules/electron/dist
+directories:
+  output: release
+win:
+  signAndEditExecutable: false
+  target:
+    - target: dir
+      arch: [x64]
+extraResources:
+  - from: connectors
+    to: connectors
+  - from: ../mobile/dist
+    to: mobile-app
+  - from: ../../services/gateway
+    to: mobile-gateway
+    filter:
+      - mobile-api.mjs
+      - reply-delivery.mjs
+files:
+  - electron/**/*
+  - dist/**/*
+  - package.json
+asar: true

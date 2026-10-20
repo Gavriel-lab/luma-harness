@@ -1,0 +1,18 @@
+.xiaodu-floating {
+  position: absolute;
+  z-index: 30;
+  top: calc(max(env(safe-area-inset-top, 0px), 8px) + 52px);
+  right: 10px;
+  width: min(74%, 288px);
+  height: min(38%, 300px);
+  max-height: calc(100% - 140px);
+  isolation: isolate;
+}
+.xiaodu-floating-messages [data-message-id] { gap: 6px; }
+.xiaodu-floating-messages [data-message-id] > div:first-child > img,
+.xiaodu-floating-messages [data-message-id] > div:first-child > div { width: 24px; height: 24px; font-size: 10px; }
+.xiaodu-floating-messages [data-message-id] > div:last-child { max-width: calc(100% - 30px); }
+.xiaodu-floating-messages [data-message-id] > div:last-child > div:first-child { font-size: 9px; gap: 3px; padding-inline: 2px; }
+.xiaodu-floating-messages [data-reply-part] { font-size: 12px; line-height: 1.5; padding: 7px 9px; letter-spacing: 0; }
+
+/* Base appearance uses system fonts and neutral controls. */

@@ -1,0 +1,12 @@
+{
+  "name": "reviewer-zcode-bridge-adapter",
+  "private": true,
+  "type": "module",
+  "description": "工单12-S：小屋工作桌 → Zcode 客户端适配器（broker v1 合同）",
+  "scripts": {
+    "test": "node --test test/unit-packet.mjs test/unit-state.mjs test/unit-broker-contract.mjs test/unit-attempt-dedupe.mjs test/unit-model-policy.mjs test/audit-probes.mjs",
+    "test:e2e": "node --test test/e2e-synthetic.mjs",
+    "test:zcode": "node test/e2e-zcode-real.mjs",
+    "mock": "node bin/start-mock-broker.mjs"
+  }
+}

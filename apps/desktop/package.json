@@ -1,0 +1,45 @@
+{
+  "name": "luma-harness-desktop",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Luma desktop and authoritative multi-agent host",
+  "main": "electron/main.cjs",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc -b --pretty",
+    "test": "vitest run src/store/authorityMutations.test.ts src/store/attachments.test.ts src/adapter/ChatBus.test.ts",
+    "test:watch": "vitest",
+    "verify": "npm run typecheck && npm run test && npm run build",
+    "desktop:dev": "node scripts/desktop-dev.mjs",
+    "desktop:pack": "node scripts/desktop-pack.mjs",
+    "desktop:start": "node scripts/start.mjs"
+  },
+  "dependencies": {
+    "lucide-react": "0.469.0",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "undici": "8.11.2"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.4",
+    "@types/react": "18.3.31",
+    "@types/react-dom": "18.3.7",
+    "@vitejs/plugin-react": "4.7.0",
+    "electron": "44.5.1",
+    "electron-builder": "26.16.1",
+    "playwright": "1.63.0",
+    "sharp": "0.33.5",
+    "typescript": "5.9.3",
+    "vite": "6.4.3",
+    "vitest": "2.1.9"
+  },
+  "allowScripts": {
+    "sharp@0.33.5": true,
+    "esbuild@0.25.12": true,
+    "esbuild@0.21.5": true,
+    "electron@44.5.1": true
+  }
+}

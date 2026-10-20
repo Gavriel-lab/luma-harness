@@ -1,0 +1,32 @@
+name: Public release checks
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm run setup
+      - run: npm test
+      - run: npm --prefix apps/mobile run lint
+      - run: npm run build
+      - run: npm run check:privacy
+      - run: node apps/desktop/node_modules/playwright/cli.js install chromium
+      - run: node scripts/smoke.mjs
+        env:
+          LUMA_TEST_BROWSER: chromium
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: synthetic-ui-checks
+          path: |
+            .local/smoke-*/*.png
+            .local/smoke-*/result.json
+          include-hidden-files: true

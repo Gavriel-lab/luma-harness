@@ -1,0 +1,17 @@
+{
+  "name": "luma",
+  "private": true,
+  "type": "module",
+  "description": "Luma 私用 PWA 云端入口",
+  "scripts": {
+    "test": "node --test worker.test.mjs gateway.test.mjs mobile-api.test.mjs reply-delivery.test.mjs speech-api.test.mjs music-api.test.mjs",
+    "dev": "wrangler dev --local",
+    "build": "wrangler deploy --dry-run --outdir dist"
+  },
+  "devDependencies": {
+    "wrangler": "4.147.0"
+  },
+  "dependencies": {
+    "jose": "6.2.12"
+  }
+}

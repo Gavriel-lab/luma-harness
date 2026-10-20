@@ -1,0 +1,71 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import http from 'node:http';
+import assert from 'node:assert/strict';
+import {createRequire} from 'node:module';
+import {fileURLToPath} from 'node:url';
+const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
+const require=createRequire(path.join(root,'apps/desktop/package.json'));
+const {_electron,chromium}=require('playwright');
+const {initialize}=require('./electron/publicConfig.cjs');
+const run=path.join(root,'.local/smoke-'+Date.now()),dataDir=path.join(run,'userData');
+fs.mkdirSync(run,{recursive:true});
+let modelCalls=0,received=[];
+const upstream=http.createServer(async(req,res)=>{
+ let raw='';for await(const c of req)raw+=c;
+ received.push(JSON.parse(raw));modelCalls++;
+ res.writeHead(200,{'content-type':'text/event-stream'});
+ res.write('data: '+JSON.stringify({choices:[{delta:{content:'PUBLIC_API_ROUNDTRIP_OK'},finish_reason:null}]})+'\n\n');
+ res.end('data: [DONE]\n\n');
+});
+await new Promise(resolve=>upstream.listen(0,'127.0.0.1',resolve));
+const port=upstream.address().port;
+await initialize({dataDir,workspace:path.join(run,'workspace'),config:{members:[{id:'agent_coordinator',name:'Test Coordinator',mode:'real',profileId:'profile_test'}],profiles:[{id:'profile_test',name:'Synthetic local transport',providerType:'openai-compatible',baseUrl:`http://127.0.0.1:${port}/v1`,model:'synthetic-local-test',credentialRef:'cred_agent_coordinator'}]}});
+let app,browser,mobile;const errors=[];
+try{
+ const env={...process.env,XIAOWU_LOAD_DIST:'1',LUMA_HEADLESS:'1',LUMA_LOCAL_MOBILE_PORT:'0',LUMA_WORKSPACE:path.join(run,'workspace')};delete env.ELECTRON_RUN_AS_NODE;
+ const packaged=process.env.LUMA_TEST_APP;
+ app=await _electron.launch({executablePath:packaged||require('electron'),args:[...(packaged?[]:[path.join(root,'apps/desktop')]),`--user-data-dir=${dataDir}`],env,timeout:30000});
+ const page=await app.firstWindow();page.on('pageerror',error=>errors.push(error.message));
+ await page.waitForFunction(()=>window.xiaowuDesktopStore?.ready===true,{timeout:20000});
+ assert.equal(await page.evaluate(()=>window.xiaowuDesktopStore.data.agents.length),2);
+ const credential=await page.evaluate(()=>window.xiaowuDesktop.credentials.set('cred_agent_coordinator','synthetic-local-transport-key'));
+ assert.equal(credential.ok,true);
+ await page.screenshot({path:path.join(run,'desktop-base.png')});
+ const descriptor=path.join(dataDir,'local-mobile/connection.json');
+ for(let i=0;i<100&&!fs.existsSync(descriptor);i++)await new Promise(resolve=>setTimeout(resolve,100));
+ const connection=JSON.parse(fs.readFileSync(descriptor,'utf8'));
+ browser=await chromium.launch({channel:process.env.LUMA_TEST_BROWSER||'msedge',headless:true});
+ const context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
+ mobile=await context.newPage();mobile.on('pageerror',error=>errors.push(error.message));
+ await mobile.goto(connection.url);
+ await mobile.getByText('Test Coordinator',{exact:true}).first().waitFor({timeout:15000});
+ await mobile.getByText('Test Coordinator',{exact:true}).first().click();
+ const input=mobile.getByRole('textbox').last();await input.fill('Check the configured local API connection');
+ const button=mobile.locator('button').filter({has:mobile.locator('svg.lucide-send')});
+ if(await button.count())await button.last().click();else await input.press('Enter');
+ await mobile.getByText('PUBLIC_API_ROUNDTRIP_OK',{exact:true}).first().waitFor({timeout:20000});
+ await page.getByText('PUBLIC_API_ROUNDTRIP_OK',{exact:true}).first().waitFor({timeout:15000});
+ assert.equal(modelCalls,1);
+ assert.ok(received[0].messages.some(m=>m.content?.includes('Check the configured local API connection')));
+ await mobile.screenshot({path:path.join(run,'mobile-base.png')});
+ await mobile.getByRole('button',{name:'工作台',exact:true}).first().click();
+ await mobile.screenshot({path:path.join(run,'mobile-workbench.png')});
+ await page.getByRole('button',{name:'成员与接口连接设置',exact:true}).first().click();
+ await page.getByTestId('member-setting-agent_coordinator').click();
+ await page.getByLabel('接入方式').selectOption('codex-app-server');
+ await page.getByLabel('接入方式').selectOption('openai-compatible');
+ assert.deepEqual(errors,[]);
+ const disk=JSON.parse(fs.readFileSync(path.join(dataDir,'xiaowu-data/data.v1.json'),'utf8'));
+ assert.ok(disk.messages.some(m=>m.text==='PUBLIC_API_ROUNDTRIP_OK'&&m.status==='sent'));
+ fs.writeFileSync(path.join(run,'result.json'),JSON.stringify({marker:'LUMA_PUBLIC_SMOKE_OK',packaged:!!packaged,modelCalls,desktop:true,mobile:true,providerSelection:true,saved:true,browserErrors:errors},null,2));
+ console.log(JSON.stringify({marker:'LUMA_PUBLIC_SMOKE_OK',packaged:!!packaged,modelCalls,artifacts:path.relative(root,run)}));
+}catch(error){
+ if(mobile){await mobile.screenshot({path:path.join(run,'mobile-failure.png')}).catch(()=>{});fs.writeFileSync(path.join(run,'mobile-failure.txt'),await mobile.locator('body').innerText().catch(()=>''));}
+ fs.writeFileSync(path.join(run,'errors.json'),JSON.stringify(errors));
+ throw error;
+}finally{
+ if(browser)await browser.close();
+ if(app)await app.close();
+ await new Promise(resolve=>upstream.close(resolve));
+}

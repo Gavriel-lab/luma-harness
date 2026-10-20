@@ -1,0 +1,11 @@
+{
+  "ownerName": "Owner",
+  "coordinatorName": "Coordinator",
+  "workspace": "",
+  "members": [
+    {"id": "agent_coordinator", "name": "Coordinator", "mode": "real", "profileId": "profile_cli", "systemPrompt": "You coordinate explicitly requested work through xiaowu_workbench. Read the authoritative snapshot, use bounded tickets and registered workers, inspect real artifacts before acceptance, preserve the originating conversation, and report what was actually verified."}
+  ],
+  "profiles": [
+    {"id": "profile_cli", "name": "My CLI", "providerType": "codex-app-server", "baseUrl": "", "model": "YOUR_MODEL_ID", "codexModel": "YOUR_MODEL_ID", "credentialRef": ""}
+  ]
+}

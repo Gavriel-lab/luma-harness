@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content" />
+    <title>Luma Harness</title>
+    <meta name="description" content="Configurable multi-agent work harness" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="theme-color" content="#ffffff" />
+
+    <!-- iOS PWA 支持 -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Luma" />
+    <link rel="apple-touch-icon" href="/icons/icon-192.svg" />
+
+    <!-- iOS 全面屏与物理尺寸精准同步脚本：彻底消除 iPhone 14 Pro Max (430×932) 底部 59pt/64px 白边 -->
+    <script>
+      (function() {
+        function syncAppHeight() {
+          var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+          var isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+          // iPhone 14 Pro Max 逻辑全高为 932px。在 iOS PWA 模式下取真实屏幕最大维度，彻底填满底部安全区
+          var h = (isIOS && isStandalone)
+            ? Math.max(window.screen.width, window.screen.height) + 'px'
+            : (window.visualViewport ? window.visualViewport.height + 'px' : '100dvh');
+          document.documentElement.style.setProperty('--app-height', h);
+        }
+        syncAppHeight();
+        // Initial paint only. React owns viewport/focus listeners after mounting.
+      })();
+    </script>
+
+    <!-- 关键图片预加载：秒级呈现开屏与主画 -->
+    
+    
+
+    <!-- 诗意手写体字体异步加载，绝不阻塞首屏渲染 -->
+    
+    
+    
+    <noscript>
+      
+    </noscript>
+
+    <!-- 零白屏内联首屏底色与平滑占位 -->
+    <style>
+      :root {
+        --app-height: 100dvh;
+      }
+      html, body {
+        background-color: #ffffff;
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: var(--app-height, 100dvh);
+        min-height: var(--app-height, 100dvh);
+        max-height: var(--app-height, 100dvh);
+        overflow: hidden;
+        overscroll-behavior: none;
+        -webkit-overflow-scrolling: touch;
+        -webkit-tap-highlight-color: transparent;
+      }
+      #root {
+        background-color: #ffffff;
+        width: 100%;
+        height: var(--app-height, 100dvh);
+        min-height: var(--app-height, 100dvh);
+        max-height: var(--app-height, 100dvh);
+        overflow: hidden;
+        overscroll-behavior: none;
+      }
+      .initial-splash-placeholder {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100dvh;
+        background-color: #f5eee3;
+        font-family: -apple-system, BlinkMacSystemFont, serif;
+        color: #58534d;
+      }
+      .initial-splash-title {
+        font-size: 1.5rem;
+        letter-spacing: 0.08em;
+        color: #2a2724;
+        margin-bottom: 0.5rem;
+      }
+      .initial-splash-sub {
+        font-size: 0.8rem;
+        color: #847e76;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root">
+      <div class="initial-splash-placeholder">
+        <div class="initial-splash-title">Luma</div>
+        <div class="initial-splash-sub">莫奈庭院 · 艺术沙龙</div>
+      </div>
+    </div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

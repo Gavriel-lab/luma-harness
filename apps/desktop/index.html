@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <!--
+      CSP 与现有内联样式、图片资源兼容：
+      外部 HTTPS 仅用于用户主动应用的字体 CSS 与字体资源；脚本仍只允许本地。
+    -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; font-src 'self' data: https:; script-src 'self'; connect-src 'self' https: ws://127.0.0.1:5183 http://127.0.0.1:5183; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
+    />
+    <title>Luma Harness</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <noscript>小屋需要启用 JavaScript 才能运行。</noscript>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

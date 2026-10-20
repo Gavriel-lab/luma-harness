@@ -1,0 +1,821 @@
+/* ============================================================
+   桌面 Luma 日记馆样式 (莫奈花园、法式低饱和、双页水彩展开)
+   ============================================================ */
+
+.diary-room {
+  background: #eef0e4;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  user-select: none;
+  color: #2e2721;
+}
+
+/* ---------- 背景水彩 ---------- */
+.diary-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.diary-backdrop-painting {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.diary-backdrop[data-variant="garden"] .diary-backdrop-wash {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, #f8f3e8b3 0%, #f8f3e840 15%, #f8f3e800 30%),
+    radial-gradient(75% 50% at 50% 50%, #fffaf01f, #fffaf000 70%);
+}
+
+.diary-backdrop[data-variant="soft"] .diary-backdrop-painting {
+  inset: -24px;
+  width: calc(100% + 48px);
+  height: calc(100% + 48px);
+  filter: blur(14px) saturate(0.85);
+  opacity: 0.65;
+}
+
+.diary-backdrop[data-variant="soft"] .diary-backdrop-wash {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(120% 70% at 50% 0%, #f8f2e6e6 0%, #f5eee3b3 60%, #f1e9dccc 100%);
+}
+
+/* ---------- 顶部浮动栏 ---------- */
+.carnet-head {
+  position: absolute;
+  z-index: 20;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  pointer-events: none;
+}
+
+.carnet-head > * {
+  pointer-events: auto;
+}
+
+.carnet-float-btn {
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 3px;
+  background: rgba(255, 250, 240, 0.88);
+  color: #5a4a36;
+  box-shadow: none;
+  cursor: pointer;
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.carnet-float-btn:hover {
+  background: #fffaf0;
+  transform: scale(1.05);
+}
+
+.carnet-float-btn:active {
+  transform: scale(0.95);
+}
+
+.carnet-aa {
+  font-family: Georgia, serif;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.carnet-float-spacer {
+  width: 36px;
+}
+
+.carnet-title {
+  text-align: center;
+}
+
+.carnet-title h1 {
+  margin: 0;
+  font-family: WdPinyon, 'Great Vibes', 'Parisienne', cursive, serif;
+  font-size: 2.2rem;
+  line-height: 1.1;
+  color: #3e3424;
+  text-shadow: none;
+}
+
+.carnet-title p {
+  margin: 2px 0 0;
+  font-size: 0.95rem;
+  color: rgba(122, 106, 82, 0.8);
+  font-family: 'Noto Serif SC', 'Songti SC', serif;
+}
+
+.carnet-title--who {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.carnet-who-name {
+  font-family: 'Source Han Serif SC', 'Noto Serif SC', 'Songti SC', Georgia, serif;
+  font-weight: 600;
+  font-size: 16px;
+  color: #3e3424;
+}
+
+.carnet-who-sub {
+  font-family: WdPinyon, 'Great Vibes', cursive, serif;
+  font-size: 16px;
+  color: rgba(122, 106, 82, 0.7);
+}
+
+/* ---------- 花园页舞台 (散落日记本) ---------- */
+.carnet-stage-wrap {
+  position: absolute;
+  inset: 0;
+  top: 70px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+.carnet-stage {
+  position: relative;
+  width: min(94vw, 1160px);
+  height: min(85vh, 720px);
+}
+
+/* 使用者那本手记 (摊开在中间偏上) */
+.carnet-mine {
+  position: absolute;
+  z-index: 5;
+  left: 50%;
+  top: 6%;
+  transform: translateX(-50%) rotate(-1.5deg);
+  width: 320px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  transition: transform 0.4s cubic-bezier(0.3, 0.7, 0.3, 1), filter 0.4s ease;
+}
+
+.carnet-mine:hover {
+  transform: translateX(-50%) translateY(-4px) rotate(-1deg) scale(1.02);
+  filter: drop-shadow(0 12px 18px rgba(58, 74, 44, 0.35));
+}
+
+.carnet-mine img {
+  display: block;
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(0 8px 12px rgba(58, 74, 44, 0.28));
+}
+
+.carnet-mine-tag {
+  position: absolute;
+  left: 50%;
+  bottom: -18px;
+  transform: translateX(-50%) rotate(1.5deg);
+  padding: 2px 14px;
+  font-size: 1rem;
+  font-family: WdPinyon, 'Great Vibes', cursive, serif;
+  color: #5c3d2e;
+  background: rgba(255, 250, 240, 0.95);
+  border-radius: 3px;
+  box-shadow: none;
+  white-space: nowrap;
+}
+
+/* 家人的手记封面 (散落在四周) */
+.carnet-book {
+  position: absolute;
+  z-index: 4;
+  width: 190px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  transform: rotate(var(--rot, 0deg));
+  transition: transform 0.4s cubic-bezier(0.3, 0.7, 0.3, 1), filter 0.4s ease;
+  animation: carnet-settle 0.7s cubic-bezier(0.2, 0.8, 0.3, 1) var(--delay, 0ms) backwards;
+}
+
+.carnet-book:hover {
+  z-index: 10;
+  transform: translateY(-8px) rotate(calc(var(--rot, 0deg) * 0.7)) scale(1.04);
+  filter: drop-shadow(0 14px 18px rgba(58, 74, 44, 0.35));
+}
+
+.carnet-book-cover {
+  display: block;
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(0 6px 10px rgba(58, 74, 44, 0.25));
+}
+
+.carnet-book[data-opening] {
+  z-index: 20;
+  animation: none;
+  transform: translateY(-12px) rotate(0deg) scale(1.1);
+  filter: drop-shadow(0 0 16px rgba(255, 246, 214, 0.9)) drop-shadow(0 0 6px #fffaf0);
+}
+
+.carnet-mine[data-opening] {
+  z-index: 20;
+  transform: translateX(-50%) translateY(-10px) scale(1.08);
+  filter: drop-shadow(0 0 18px rgba(255, 246, 214, 0.9)) drop-shadow(0 0 6px #fffaf0);
+}
+
+/* 封面椭圆框头像 */
+.carnet-cameo {
+  position: absolute;
+  width: 54px;
+  height: 42px;
+  transform: translate(-50%, -50%);
+  border-radius: 3px;
+  overflow: hidden;
+  background: #efe4cc;
+  box-shadow: none;
+}
+
+.carnet-cameo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.carnet-cameo span {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Source Han Serif SC', Georgia, serif;
+  font-weight: 700;
+  font-size: 15px;
+  color: #5c3d2e;
+}
+
+/* 封面书角纸签 (只写名字，不漏任何正文) */
+.carnet-tag {
+  position: absolute;
+  z-index: 2;
+  bottom: -10px;
+  min-width: 60px;
+  padding: 6px 12px;
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  font-family: 'Source Han Serif SC', 'Noto Serif SC', serif;
+  font-weight: 600;
+  font-size: 13px;
+  color: #4a3d2e;
+  white-space: nowrap;
+  box-shadow: none;
+}
+
+.carnet-tag--left {
+  left: -8px;
+  transform: rotate(-3deg);
+}
+
+.carnet-tag--right {
+  right: -8px;
+  transform: rotate(3deg);
+}
+
+/* 装饰花草剪影 */
+.carnet-deco {
+  position: absolute;
+  pointer-events: none;
+  filter: drop-shadow(0 4px 6px rgba(58, 74, 44, 0.2));
+}
+
+.carnet-deco--over {
+  z-index: 6;
+}
+
+/* 飘落的花瓣与萤火 */
+.carnet-air {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.carnet-petal {
+  position: absolute;
+  width: 9px;
+  height: 13px;
+  background: radial-gradient(circle at 40% 30%, #fcd6d8 0%, #f1aeb5 70%, #d88290 100%);
+  border-radius: 3px;
+  opacity: 0.65;
+  filter: blur(0.4px);
+  animation: carnet-fall linear infinite;
+}
+
+.carnet-firefly {
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  background: #fbf5a8;
+  border-radius: 3px;
+  box-shadow: none;
+  animation: carnet-glow 4s ease-in-out infinite alternate;
+}
+
+@keyframes carnet-settle {
+  from {
+    opacity: 0;
+    transform: translateY(-16px) rotate(calc(var(--rot, 0deg) - 6deg));
+  }
+  to {
+    opacity: 1;
+    transform: rotate(var(--rot, 0deg));
+  }
+}
+
+@keyframes carnet-fall {
+  0% {
+    transform: translateY(-20px) rotate(0deg) scale(0.9);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.7;
+  }
+  85% {
+    opacity: 0.7;
+  }
+  100% {
+    transform: translateY(105vh) rotate(380deg) scale(1.05);
+    opacity: 0;
+  }
+}
+
+@keyframes carnet-glow {
+  0% {
+    opacity: 0.2;
+    transform: translateY(0) scale(0.8);
+  }
+  50% {
+    opacity: 0.9;
+    transform: translateY(-8px) scale(1.1);
+  }
+  100% {
+    opacity: 0.3;
+    transform: translateY(4px) scale(0.9);
+  }
+}
+
+/* ---------- 宽屏摊开双页本 (阅读页) ---------- */
+.diary-book-wrapper {
+  position: absolute;
+  inset: 0;
+  top: 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 16px 32px 24px;
+}
+
+.diary-double-page {
+  position: relative;
+  display: flex;
+  width: 100%;
+  max-width: 1080px;
+  height: calc(100% - 50px);
+  max-height: 680px;
+  background-color: #faf7f0;
+  background-size: cover;
+  border-radius: 3px;
+  box-shadow: none;
+  overflow: hidden;
+  transition: transform 0.4s ease;
+}
+
+/* 翻页动画 */
+.diary-double-page[data-turn="older"] {
+  animation: diary-turn-left 0.45s ease-out;
+}
+.diary-double-page[data-turn="newer"] {
+  animation: diary-turn-right 0.45s ease-out;
+}
+
+@keyframes diary-turn-left {
+  0% { transform: scale(0.99) rotateY(0deg); opacity: 0.8; }
+  50% { transform: scale(1.01) rotateY(3deg); opacity: 0.9; }
+  100% { transform: scale(1) rotateY(0deg); opacity: 1; }
+}
+
+@keyframes diary-turn-right {
+  0% { transform: scale(0.99) rotateY(0deg); opacity: 0.8; }
+  50% { transform: scale(1.01) rotateY(-3deg); opacity: 0.9; }
+  100% { transform: scale(1) rotateY(0deg); opacity: 1; }
+}
+
+/* 中间装订书脊微阴影 */
+.diary-spine {
+  position: absolute;
+  left: 38%;
+  top: 0;
+  bottom: 0;
+  width: 16px;
+  transform: translateX(-50%);
+  background: linear-gradient(90deg, rgba(70, 50, 30, 0.08) 0%, rgba(70, 50, 30, 0.18) 50%, rgba(70, 50, 30, 0.06) 100%);
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* 左页：目录 (占 38%) */
+.diary-left-page {
+  width: 38%;
+  height: 100%;
+  border-right: 1px solid rgba(138, 106, 79, 0.15);
+  display: flex;
+  flex-direction: column;
+  padding: 32px 28px 24px;
+  position: relative;
+  background: rgba(254, 252, 247, 0.5);
+}
+
+.diary-catalog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px dashed rgba(160, 130, 95, 0.3);
+}
+
+.diary-catalog-title {
+  font-family: WdPinyon, 'Great Vibes', cursive, serif;
+  font-size: 1.8rem;
+  color: #4a3d2e;
+}
+
+.diary-catalog-sub {
+  font-size: 12px;
+  color: #8c7a65;
+  font-family: 'Noto Serif SC', serif;
+}
+
+.diary-catalog-list {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.diary-catalog-item {
+  width: 100%;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 8px 10px;
+  margin-bottom: 4px;
+  border: 0;
+  background: none;
+  border-radius: 3px;
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 0.18s ease;
+}
+
+.diary-catalog-item:hover {
+  background-color: rgba(210, 180, 140, 0.18);
+}
+
+.diary-catalog-item.is-active {
+  background-color: rgba(180, 140, 100, 0.22);
+}
+
+.diary-catalog-item-title {
+  font-size: 13.5px;
+  font-family: 'Source Han Serif SC', 'Noto Serif SC', serif;
+  font-weight: 500;
+  color: #382e24;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  margin-right: 8px;
+}
+
+.diary-catalog-item-date {
+  font-size: 12px;
+  color: #8a735c;
+  font-family: monospace;
+}
+
+/* 丝带书签 */
+.diary-ribbon-badge {
+  position: absolute;
+  top: -6px;
+  right: 28px;
+  width: 26px;
+  z-index: 12;
+  filter: drop-shadow(0 3px 5px rgba(90, 70, 48, 0.3));
+}
+
+.diary-ribbon-badge img {
+  width: 100%;
+  display: block;
+}
+
+/* 右页：正文 (占 62%) */
+.diary-right-page {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 32px 40px 24px;
+  overflow-y: auto;
+  position: relative;
+  background: rgba(255, 253, 248, 0.7);
+}
+
+.diary-article-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.diary-article-date {
+  font-size: 13.5px;
+  font-family: 'Source Han Serif SC', 'Noto Serif SC', serif;
+  color: #7a634e;
+  letter-spacing: 0.04em;
+}
+
+.diary-version-badge {
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  background: rgba(180, 150, 110, 0.15);
+  color: #6b533e;
+  border: 1px solid rgba(180, 150, 110, 0.25);
+  cursor: pointer;
+}
+
+.diary-article-title {
+  font-size: 21px;
+  font-family: 'Source Han Serif SC', 'Noto Serif SC', Georgia, serif;
+  font-weight: 600;
+  color: #2b221a;
+  margin-bottom: 20px;
+  line-height: 1.35;
+}
+
+.diary-article-body {
+  flex: 1;
+  line-height: 1.85;
+  color: #2e261f;
+}
+
+.diary-article-body p {
+  margin-bottom: 1.25em;
+  text-indent: 2em;
+}
+
+.diary-fin {
+  text-align: center;
+  margin: 28px 0 16px;
+  color: rgba(140, 110, 80, 0.5);
+  font-size: 18px;
+}
+
+/* 真实印记剪报 (撕纸效果) */
+.diary-clippings-area {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px dashed rgba(160, 130, 95, 0.3);
+}
+
+.diary-clippings-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-family: 'Noto Serif SC', serif;
+  color: #7c5c3e;
+  background: rgba(255, 248, 235, 0.8);
+  border: 1px solid rgba(190, 160, 120, 0.35);
+  border-radius: 3px;
+  padding: 4px 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.diary-clippings-toggle:hover {
+  background: rgba(255, 248, 235, 1);
+  border-color: rgba(160, 120, 80, 0.5);
+}
+
+.diary-clipping-card {
+  margin-top: 10px;
+  padding: 12px 16px;
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  filter: drop-shadow(0 2px 4px rgba(70, 50, 30, 0.12));
+}
+
+.diary-clipping-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: #6a543f;
+  margin-bottom: 4px;
+}
+
+.diary-clipping-quote {
+  font-size: 12px;
+  color: #3b2f24;
+  line-height: 1.5;
+  font-style: italic;
+}
+
+/* 页底翻页控制条 */
+.diary-pager-nav {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 12px;
+}
+
+.diary-pager-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 14px;
+  background: rgba(255, 250, 240, 0.9);
+  border: 1px solid rgba(200, 170, 130, 0.4);
+  border-radius: 3px;
+  color: #544332;
+  font-size: 12.5px;
+  cursor: pointer;
+  box-shadow: none;
+  transition: all 0.2s ease;
+}
+
+.diary-pager-btn:hover:not(:disabled) {
+  background: #fffaf0;
+  transform: translateY(-1px);
+  box-shadow: none;
+}
+
+.diary-pager-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.diary-pager-indicator {
+  font-size: 12px;
+  color: #6e5842;
+  font-family: monospace;
+}
+
+/* 空白页 */
+.diary-page-empty {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: #7a6652;
+  padding: 40px;
+}
+
+.diary-page-empty-title {
+  font-size: 16px;
+  font-weight: 600;
+  font-family: 'Source Han Serif SC', serif;
+  margin-bottom: 8px;
+  color: #4b3826;
+}
+
+/* 提笔按钮 */
+.carnet-quill-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 20px;
+  padding: 8px 18px;
+  border-radius: 3px;
+  background: rgba(200, 180, 150, 0.3);
+  color: #7a624a;
+  border: 1px dashed rgba(160, 130, 90, 0.5);
+  cursor: not-allowed;
+}
+
+.carnet-soon {
+  font-size: 10px;
+  padding: 1px 6px;
+  background: rgba(140, 110, 80, 0.15);
+  border-radius: 3px;
+}
+
+/* 弹窗抽屉 (设置 / 阅读) */
+.diary-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.diary-modal-panel {
+  background: #fcfaf4;
+  border: 1px solid rgba(190, 160, 120, 0.4);
+  border-radius: 3px;
+  box-shadow: none;
+  padding: 24px;
+  width: 90%;
+  max-width: 480px;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+.diary-font-btn {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 12px;
+  border: 1px solid rgba(180, 150, 110, 0.3);
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.18s ease;
+}
+
+.diary-font-btn.is-active {
+  border-color: #8c5d33;
+  background: rgba(220, 190, 150, 0.25);
+  box-shadow: none;
+}
+
+.diary-font-sample {
+  font-size: 14px;
+  color: #2e261f;
+  margin-bottom: 2px;
+}
+
+.diary-font-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: #4b3a2a;
+}
+
+.diary-font-desc {
+  font-size: 10.5px;
+  color: #8a735c;
+}
+
+.diary-size-btn {
+  padding: 4px 12px;
+  border: 1px solid rgba(180, 150, 110, 0.3);
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.6);
+  color: #4b3a2a;
+  cursor: pointer;
+}
+
+.diary-size-btn.is-active {
+  border-color: #8c5d33;
+  background: #8c5d33;
+  color: #fffaf0;
+}
+
+/* 尊重 prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  .carnet-book,
+  .carnet-mine,
+  .carnet-petal,
+  .carnet-firefly,
+  .diary-double-page {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* Base appearance uses system fonts and neutral controls. */

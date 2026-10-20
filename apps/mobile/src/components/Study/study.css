@@ -1,0 +1,537 @@
+/* 手机端书房 · 沉浸式手稿案台 */
+
+.study-mobile-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  height: var(--app-height, 100dvh);
+  display: flex;
+  flex-direction: column;
+  background-color: #2b231d;
+  background-image: none;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  overflow: hidden;
+  color: #3e3228;
+  font-family: serif, 'Songti SC', 'SimSun', STSong;
+  user-select: text;
+}
+
+/* 顶部毛玻璃导航案 */
+.study-mobile-topbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: calc(max(16px, env(safe-area-inset-top, 0px)) + 8px) 14px 10px 14px;
+  background: linear-gradient(180deg, rgba(247, 243, 235, 0.94) 0%, rgba(244, 238, 227, 0.88) 100%);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border-bottom: 1px solid rgba(138, 75, 56, 0.2);
+  box-shadow: none;
+  z-index: 30;
+  flex-shrink: 0;
+}
+
+.study-mobile-back-btn {
+  background: transparent;
+  border: none;
+  color: #634b35;
+  padding: 6px;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.study-mobile-back-btn:active {
+  transform: scale(0.92);
+  background: rgba(138, 75, 56, 0.1);
+}
+
+.study-mobile-title-block {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.study-mobile-title-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.study-mobile-book-title {
+  font-weight: 700;
+  font-size: 15px;
+  color: #3c2f24;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 140px;
+}
+
+.study-mobile-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  padding: 2px 7px;
+  border-radius: 3px;
+  background: rgba(138, 75, 56, 0.1);
+  color: #8a4b38;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.study-mobile-status-badge--lock {
+  background: rgba(184, 134, 11, 0.15);
+  color: #946900;
+}
+
+/* 顶部操作区 */
+.study-mobile-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.study-mobile-btn-icon {
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(138, 75, 56, 0.25);
+  color: #5c432d;
+  font-size: 12px;
+  padding: 5px 9px;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.study-mobile-btn-icon:active {
+  transform: scale(0.95);
+  background: rgba(255, 255, 255, 0.9);
+}
+
+/* Aa：跟日记阅读页那颗一样，用衬线字 */
+.study-mobile-btn-aa {
+  font-family: 'Noto Serif SC', 'Songti SC', serif;
+  font-size: 14px;
+  font-weight: 600;
+  min-width: 34px;
+  justify-content: center;
+}
+
+/* 手稿流式视口（单折专注，严格禁止横向漫游与晃动） */
+.study-mobile-viewport {
+  flex: 1;
+  width: 100%;
+  max-width: 100vw;
+  box-sizing: border-box;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+  padding: 14px 12px calc(max(84px, env(safe-area-inset-bottom, 0px)) + 26px) 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* 手稿纸单页卡片：
+   border-image 固定毛边和角上的小花，只拉伸中间纸面；
+   移除引发晃动的 transform rotate，保持平稳居中。 */
+.study-mobile-sheet {
+  --sheet-img: none;
+  position: relative;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: min(100%, 460px);
+  margin: 0 auto;
+  border-style: solid;
+  border-width: 38px 22px 32px;
+  border-image-source: var(--sheet-img);
+  border-image-slice: 17% 15% 15% 15% fill;
+  border-image-repeat: stretch;
+  padding: 0 4px;
+  filter: drop-shadow(0 6px 14px rgba(35, 26, 19, 0.28));
+  transform: none !important;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.study-mobile-sheet[data-sheet='2'] { --sheet-img: none; }
+.study-mobile-sheet[data-sheet='3'] { --sheet-img: none; }
+
+/* 翻页进场微动效：轻微侧滑淡入，如翻开新纸卷 */
+@keyframes studyPageInRight {
+  from {
+    opacity: 0.6;
+    transform: translateX(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes studyPageInLeft {
+  from {
+    opacity: 0.6;
+    transform: translateX(-16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.study-page-enter-next {
+  animation: studyPageInRight 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.study-page-enter-prev {
+  animation: studyPageInLeft 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.study-mobile-sheet--wet {
+  filter: drop-shadow(0 6px 14px rgba(184, 134, 11, 0.38));
+}
+
+.study-mobile-sheet__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px dashed rgba(138, 75, 56, 0.18);
+  padding-bottom: 8px;
+  margin-bottom: 12px;
+  font-size: 12px;
+}
+
+.study-mobile-sheet__author {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 700;
+  font-size: 13.5px;
+}
+
+.study-mobile-sheet__meta {
+  color: #8c7361;
+  font-size: 11.5px;
+}
+
+.study-mobile-sheet__text {
+  font-family: var(--diary-font, inherit);
+  font-size: var(--diary-size, 15px);
+  line-height: 1.85;
+  letter-spacing: 0.03em;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* 墨迹未干浮条 */
+.study-mobile-wet-bar {
+  margin-top: 12px;
+  padding: 6px 10px;
+  background: rgba(254, 243, 199, 0.7);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11.5px;
+  color: #92400e;
+}
+
+.study-mobile-wet-dry-btn {
+  background: #92400e;
+  color: #fff;
+  border: none;
+  border-radius: 3px;
+  padding: 3px 8px;
+  font-size: 11px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+/* 批注便签 */
+.study-mobile-annotations {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.study-mobile-annotation-item {
+  background: #fdfbf7;
+  border-left: 3px solid #8a4b38;
+  border-radius: 3px;
+  padding: 6px 10px;
+  font-size: 12px;
+  color: #4a382c;
+  box-shadow: none;
+}
+
+.study-mobile-annotation-quote {
+  font-style: italic;
+  color: #8c6e58;
+  margin-bottom: 2px;
+  font-size: 11.5px;
+}
+
+/* 底部操作与翻页融合案台 */
+.study-mobile-bottom-bar {
+  position: absolute;
+  bottom: calc(max(14px, env(safe-area-inset-bottom, 0px)) + 8px);
+  left: 12px;
+  right: 12px;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.study-mobile-bottom-bar > * {
+  pointer-events: auto;
+}
+
+.study-mobile-pager {
+  flex: 1;
+  max-width: 270px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(180deg, rgba(254, 251, 245, 0.95) 0%, rgba(247, 241, 230, 0.92) 100%);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border: 1px solid rgba(138, 75, 56, 0.28);
+  border-radius: 3px;
+  padding: 0 4px;
+  box-shadow: none;
+}
+
+.study-mobile-pager__btn {
+  background: transparent;
+  border: none;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  color: #634b35;
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 6px 8px;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.study-mobile-pager__btn:active:not(:disabled) {
+  background: rgba(138, 75, 56, 0.12);
+  transform: scale(0.94);
+}
+
+.study-mobile-pager__btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.study-mobile-pager__indicator {
+  background: transparent;
+  border: none;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: #4a382c;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 3px;
+  transition: background 0.15s;
+}
+
+.study-mobile-pager__indicator:active {
+  background: rgba(138, 75, 56, 0.08);
+}
+
+.study-mobile-pager__index {
+  font-weight: 700;
+  color: #3c2f24;
+}
+
+.study-mobile-pager__dot {
+  color: #9c8774;
+}
+
+.study-mobile-pager__author {
+  font-weight: 600;
+  max-width: 60px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 底部浮动写稿羽毛笔（在案台右侧完美并排） */
+.study-mobile-fab-write {
+  position: static;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, #8a4b38 0%, #633324 100%);
+  color: #fff;
+  border: none;
+  padding: 0 16px;
+  border-radius: 3px;
+  font-size: 13.5px;
+  font-weight: 600;
+  box-shadow: none;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+
+.study-mobile-fab-write:active {
+  transform: scale(0.94);
+}
+
+/* 目录抽屉样式 */
+.study-mobile-toc-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 56vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 4px 2px;
+}
+
+.study-mobile-toc-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: #fdfbf7;
+  border: 1px solid rgba(138, 75, 56, 0.18);
+  border-radius: 3px;
+  padding: 10px 12px;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.study-mobile-toc-item--active {
+  border-color: #8a4b38;
+  background: rgba(138, 75, 56, 0.08);
+  box-shadow: none;
+}
+
+.study-mobile-toc-item__left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.study-mobile-toc-num {
+  font-weight: 700;
+  color: #3e3228;
+}
+
+.study-mobile-toc-author {
+  font-weight: 600;
+}
+
+.study-mobile-toc-tag {
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: rgba(74, 99, 80, 0.15);
+  color: #3d5942;
+}
+
+.study-mobile-toc-tag--rewrite {
+  background: rgba(184, 134, 11, 0.15);
+  color: #946900;
+}
+
+.study-mobile-toc-tag--wet {
+  background: rgba(245, 158, 11, 0.15);
+  color: #92400e;
+}
+
+.study-mobile-toc-snippet {
+  font-size: 11.5px;
+  color: #88705c;
+  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 动笔输入抽屉 / 批注弹窗 */
+.study-mobile-modal-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.study-mobile-drawer {
+  background: #fbf7ef;
+  border-radius: 3px;
+  border-top: 1px solid rgba(138, 75, 56, 0.3);
+  padding: 18px 18px calc(max(18px, env(safe-area-inset-bottom, 0px)) + 12px) 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: none;
+  max-height: 80vh;
+}
+
+.study-mobile-drawer__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 15px;
+  font-weight: 700;
+  color: #3e3228;
+}
+
+.study-mobile-textarea {
+  width: 100%;
+  border-radius: 3px;
+  border: 1px solid rgba(138, 75, 56, 0.25);
+  background: #fdfbf7;
+  padding: 12px;
+  font-size: 14.5px;
+  line-height: 24px;
+  color: #3c2f24;
+  outline: none;
+  resize: none;
+  font-family: inherit;
+}
+
+.study-mobile-textarea:focus {
+  border-color: #8a4b38;
+}
+
+.study-mobile-drawer__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Base appearance uses system fonts and neutral controls. */

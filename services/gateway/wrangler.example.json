@@ -1,0 +1,26 @@
+{
+  "name": "luma-harness",
+  "main": "index.mjs",
+  "compatibility_date": "2026-10-01",
+  "workers_dev": true,
+  "preview_urls": false,
+  "vars": {
+    "ACCESS_AUD": "",
+    "ACCESS_TEAM_DOMAIN": "",
+    "OWNER_EMAIL": "",
+    "OWNER_NAME": "使用者",
+    "LUMA_RELEASE": "public-0.1.0"
+  },
+  "services": [
+    {
+      "binding": "LUMA_RELAY",
+      "service": "luma-harness-relay"
+    }
+  ],
+  "assets": {
+    "directory": "../../apps/mobile/dist",
+    "binding": "ASSETS",
+    "run_worker_first": true,
+    "not_found_handling": "single-page-application"
+  }
+}

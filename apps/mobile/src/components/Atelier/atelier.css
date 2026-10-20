@@ -1,0 +1,358 @@
+/* 手机工作台：花园木桌 + 水彩卡片。只动 transform / opacity。 */
+
+.wb-root {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  color: #3d3530;
+  font-family: 'Noto Serif SC', 'Songti SC', serif;
+}
+
+.wb-table {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+}
+
+.wb-head {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  padding: calc(max(14px, env(safe-area-inset-top, 0px)) + 6px) 16px 14px;
+}
+
+/* 顶上压一层薄薄的米白雾，标题不跟紫藤抢 */
+.wb-head::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 -18px;
+  z-index: -1;
+  background: linear-gradient(180deg, rgba(250, 245, 236, .82) 0%, rgba(250, 245, 236, .55) 60%, rgba(250, 245, 236, 0) 100%);
+  pointer-events: none;
+}
+
+.wb-round {
+  width: 36px;
+  height: 36px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 3px;
+  color: #5d4f48;
+  background: rgba(255, 250, 242, .72);
+  border: 1px solid rgba(190, 160, 110, .55);
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+.wb-round:focus-visible,
+.wb-card:focus-visible,
+.wb-task-row:focus-visible { outline: 2px solid #b5838b; outline-offset: 3px; }
+
+.wb-heading { text-align: center; min-width: 0; }
+.wb-heading h1 { font-size: 34px; line-height: 1; color: #5f5068; text-shadow: none; }
+.wb-heading p { margin-top: 3px; font-size: 10.5px; letter-spacing: .06em; color: #6b5d55; text-shadow: none; }
+
+.wb-note {
+  position: relative;
+  z-index: 2;
+  align-self: center;
+  margin: 2px 0 4px;
+  padding: 4px 12px;
+  border-radius: 3px;
+  font-size: 11px;
+  font-style: italic;
+  color: #6b5d55;
+  background: rgba(255, 250, 242, .78);
+  border: 1px solid rgba(190, 160, 110, .4);
+}
+
+/* ---------- 木桌上的卡片：两张一排，错落摆 ---------- */
+.wb-desk {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 14px 14px calc(max(20px, env(safe-area-inset-bottom, 0px)) + 40px);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px 10px;
+  align-content: start;
+  align-items: start;
+}
+
+.wb-span,
+.wb-desk > .wb-empty { grid-column: 1 / -1; justify-self: center; }
+
+.wb-card {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 574 / 430;
+  text-align: left;
+  transform: rotate(var(--tilt));
+  animation: wb-drop .5s cubic-bezier(.2, .7, .2, 1) var(--delay) both;
+  transition: transform .25s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 右边那列往下错一点，像随手摊开的 */
+.wb-card-r { margin-top: 18px; }
+.wb-card:active { transform: rotate(var(--tilt)) scale(.97); }
+
+@keyframes wb-drop {
+  from { opacity: 0; transform: translateY(-14px) rotate(calc(var(--tilt) * 2)); }
+  to { opacity: 1; transform: rotate(var(--tilt)); }
+}
+
+.wb-card-paper {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 8px 10px rgba(80, 60, 40, .28));
+}
+
+/* 正在做的那几张有一点暖光 */
+.wb-card[data-state="active"] .wb-card-paper { filter: drop-shadow(0 8px 10px rgba(80, 60, 40, .28)) drop-shadow(0 0 14px rgba(255, 214, 150, .55)); }
+/* 做完的淡下去 */
+.wb-card[data-state="done"] { opacity: .8; }
+.wb-card[data-state="done"] .wb-card-paper { filter: drop-shadow(0 6px 8px rgba(80, 60, 40, .2)) saturate(.75); }
+
+.wb-card-pin {
+  position: absolute;
+  top: -8%;
+  left: 8%;
+  width: 16%;
+  height: auto;
+  filter: drop-shadow(1px 3px 2px rgba(60, 40, 30, .35));
+}
+
+.wb-card-pin[data-kind="washi"] { left: 28%; top: -7%; width: 46%; transform: rotate(-4deg); }
+.wb-card-pin[data-kind^="clip"] { width: 11%; top: -11%; }
+
+.wb-card-body {
+  position: absolute;
+  inset: 17% 9% 11% 10%;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.wb-card-title {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.32;
+  color: #3a312c;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.wb-card-goal {
+  margin-top: 3px;
+  padding-right: 26%;
+  font-size: 10px;
+  line-height: 1.4;
+  color: #6b5d55;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* 底部右边留给印章 */
+.wb-card-foot { margin-top: auto; padding-right: 34%; display: flex; align-items: center; gap: 6px; }
+.wb-card-count { font-family: 'Cormorant Garamond', 'Noto Serif SC', serif; font-style: italic; font-size: 13px; color: #5f5068; }
+.wb-faces { display: flex; }
+.wb-faces .wb-avatar + .wb-avatar { margin-left: -5px; }
+
+.wb-avatar {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  border-radius: 3px;
+  overflow: hidden;
+  border: 1.5px solid;
+  background: #f4ece0;
+  color: #5d4f48;
+  box-shadow: none;
+}
+
+.wb-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+/* 印章：字用代码压上去 */
+.wb-seal {
+  position: absolute;
+  right: 5%;
+  bottom: 6%;
+  width: 30%;
+  aspect-ratio: 1;
+  transform: rotate(-12deg);
+  opacity: .88;
+}
+
+.wb-seal img { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+.wb-seal span {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 30%;
+  text-align: center;
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: .04em;
+  color: #8a6f78;
+}
+
+/* 桌角的归档盒 */
+.wb-archive {
+  width: min(92%, 380px);
+  margin-top: 6px;
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 3px;
+  font-size: 12px;
+  color: #5d4f48;
+  background: rgba(250, 245, 236, .88);
+  box-shadow: none;
+  transform: rotate(-.6deg);
+}
+
+.wb-archive .font-calligraphy { font-size: 20px; color: #6f5f7a; }
+.wb-archive .wb-chev { align-self: center; }
+
+.wb-card[data-state="done"] .wb-seal span { color: #61755d; }
+.wb-card[data-state="todo"] .wb-seal span { color: #75677f; }
+
+.wb-empty {
+  margin-top: 18vh;
+  padding: 22px 26px;
+  text-align: center;
+  font-size: 13px;
+  color: #5d4f48;
+}
+
+.wb-paper {
+  width: min(84%, 380px);
+  border-radius: 3px;
+  background: rgba(250, 245, 236, .92);
+  box-shadow: none;
+  transform: rotate(-1deg);
+}
+
+.wb-empty-title { font-size: 30px; color: #6f5f7a; line-height: 1.1; margin-bottom: 6px; }
+.wb-hint { font-size: 11px; color: #8a7a70; margin-top: 6px; line-height: 1.5; }
+
+/* ---------- 一张工单摊开 ---------- */
+.wb-detail {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 14px 14px calc(max(20px, env(safe-area-inset-bottom, 0px)) + 40px);
+}
+
+.wb-sheet {
+  position: relative;
+  padding: 26px 20px 22px;
+  border-radius: 3px;
+  background:
+    radial-gradient(120% 60% at 0% 0%, rgba(214, 190, 200, .25), transparent 60%),
+    radial-gradient(120% 60% at 100% 100%, rgba(190, 205, 186, .25), transparent 60%),
+    #faf5ec;
+  box-shadow: none;
+  animation: wb-unfold .4s cubic-bezier(.2, .7, .2, 1) both;
+}
+
+@keyframes wb-unfold { from { opacity: 0; transform: translateY(16px) scale(.98); } }
+
+.wb-sheet-tape { position: absolute; top: -14px; right: 14px; width: 26%; transform: rotate(6deg); }
+.wb-sheet-title { padding-right: 24%; font-size: 19px; font-weight: 600; line-height: 1.35; color: #3a312c; }
+.wb-sheet-meta { margin-top: 4px; font-size: 11.5px; font-style: italic; color: #8a7a70; }
+
+.wb-sec { margin-top: 18px; padding-top: 12px; border-top: 1px solid rgba(190, 160, 110, .35); }
+.wb-sec h3,
+.wb-fold summary { display: flex; align-items: baseline; gap: 8px; font-size: 12.5px; letter-spacing: .1em; color: #5d4f48; margin-bottom: 8px; }
+.wb-sec h3 .font-calligraphy,
+.wb-fold summary .font-calligraphy { font-size: 21px; letter-spacing: 0; color: #6f5f7a; }
+.wb-fold summary { cursor: pointer; list-style: none; margin-bottom: 0; }
+.wb-fold summary::-webkit-details-marker { display: none; }
+.wb-fold[open] summary { margin-bottom: 8px; }
+
+.wb-text { font-size: 13px; line-height: 1.75; color: #4a403a; white-space: pre-wrap; word-break: break-word; }
+
+.wb-people { display: flex; flex-wrap: wrap; gap: 8px 14px; margin-top: 14px; }
+.wb-person { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: #5d4f48; }
+
+.wb-tasks { display: flex; flex-direction: column; gap: 4px; }
+.wb-task { border-radius: 3px; }
+.wb-task[data-status="doing"],
+.wb-task[data-status="review"] { background: radial-gradient(120% 140% at 10% 50%, rgba(232, 196, 160, .3), transparent 70%); }
+
+.wb-task-row { width: 100%; display: flex; align-items: center; gap: 10px; padding: 9px 6px; text-align: left; }
+.wb-task-row:disabled { cursor: default; }
+
+.wb-dot { width: 10px; height: 10px; flex: none; border-radius: 3px; border: 1.5px solid #b9a690; }
+.wb-task[data-status="doing"] .wb-dot { border-color: #d0a067; background: radial-gradient(circle, #e9c08a 40%, transparent 45%); }
+.wb-task[data-status="review"] .wb-dot { border-color: #c9a3a8; background: radial-gradient(circle, #c9a3a8 40%, transparent 45%); }
+.wb-task[data-status="done"] .wb-dot { border-color: #8fa38a; background: #8fa38a; }
+.wb-task[data-status="done"] .wb-task-title { color: #8a7a70; }
+
+.wb-task-main { min-width: 0; flex: 1; }
+.wb-task-title { display: block; font-size: 13.5px; color: #3a312c; line-height: 1.4; }
+.wb-task-sub { display: flex; align-items: center; gap: 5px; margin-top: 2px; font-size: 11px; color: #8a7a70; }
+.wb-task-sub em { font-style: italic; }
+.wb-chev { flex: none; color: #a39388; transition: transform .2s ease; }
+
+.wb-task-more { padding: 2px 8px 10px 26px; }
+
+.wb-notes { margin-top: 6px; display: flex; flex-direction: column; gap: 6px; }
+
+/* 进度小纸条 */
+.wb-notes li {
+  display: flex;
+  gap: 8px;
+  padding: 6px 9px;
+  border-radius: 3px;
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: #4a403a;
+  background: rgba(255, 252, 245, .9);
+  box-shadow: none;
+}
+
+.wb-notes li:nth-child(odd) { transform: rotate(-.4deg); }
+.wb-notes li:nth-child(even) { transform: rotate(.4deg); }
+.wb-notes li[data-kind="blocked"],
+.wb-notes li[data-kind="rejected"],
+.wb-notes li[data-kind="question"],
+.wb-notes li[data-kind="permission"] { background: rgba(250, 232, 230, .92); }
+.wb-notes li[data-kind="accepted"] { background: rgba(232, 240, 228, .92); }
+.wb-note-time { flex: none; font-style: italic; color: #a39388; }
+
+.wb-report { margin-top: 10px; padding: 9px 11px; border-radius: 3px; background: rgba(244, 236, 224, .8); border-left: 2px solid #c9b48a; }
+.wb-label { display: block; font-size: 10.5px; font-style: italic; color: #8a7a70; margin-bottom: 3px; }
+
+.wb-review { margin-top: 8px; font-size: 12px; font-style: italic; color: #61755d; }
+.wb-review[data-decision="rejected"] { color: #a2504a; }
+
+@media (prefers-reduced-motion: reduce) {
+  .wb-card, .wb-sheet { animation: none; }
+  .wb-card, .wb-chev { transition: none; }
+}
+
+/* Base appearance uses system fonts and neutral controls. */

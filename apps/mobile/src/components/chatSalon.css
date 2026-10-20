@@ -1,0 +1,434 @@
+/* 聊天页 · 莫奈信笺风格（列表、侧边栏、背景）
+   不用毛玻璃 backdrop-filter：既更像纸，也更省手机性能 */
+
+/* ---------- 背景：首页莫奈调淡后铺在纸底下 ---------- */
+.salon-backdrop-painting {
+  position: absolute;
+  inset: -24px;
+  width: calc(100% + 48px);
+  height: calc(100% + 48px);
+  object-fit: cover;
+  filter: blur(12px) saturate(.85);
+  opacity: .6;
+}
+
+.salon-backdrop-wash {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(120% 60% at 50% 0%, #f8f2e6cc 0%, #f5eee38c 60%, #f1e9dc66 100%);
+}
+
+/* ---------- 信笺卡片 ---------- */
+.salon-letter {
+  position: relative;
+  width: 100%;
+  text-align: left;
+  background-color: #fdf9f1c7;
+  background-image: none;
+  background-size: 7px 7px, 100% 100%;
+  border: 1px solid #c9a96a59;
+  /* 略不规则的圆角，像手裁的信纸 */
+  border-radius: 3px;
+  box-shadow: none;
+  transition: transform .24s cubic-bezier(.2, .8, .2, 1), box-shadow .24s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 内侧一道细金线，信封边框的感觉 */
+.salon-letter::after {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  border: 1px solid #c9a96a2e;
+  border-radius: 3px;
+  pointer-events: none;
+}
+
+.salon-letter:active {
+  transform: scale(.985) translateY(1px);
+  box-shadow: none;
+}
+
+.salon-letter:focus-visible {
+  outline: 2px solid #b08a4a;
+  outline-offset: 2px;
+}
+
+.salon-letter:disabled {
+  cursor: default;
+  opacity: .75;
+}
+
+/* 客厅：大一号，角上探出一朵睡莲 */
+.salon-letter--salon {
+  background-color: #fcf5eacc;
+  border-color: #c9a96a80;
+}
+
+.salon-letter-lily {
+  position: absolute;
+  bottom: -14px;
+  right: -8px;
+  width: 66px;
+  height: auto;
+  rotate: -8deg;
+  pointer-events: none;
+  filter: saturate(.9);
+}
+
+/* 列表底部漂着的一片空叶子，填掉大片空白 */
+.salon-list-pad {
+  display: block;
+  width: 38%;
+  max-width: 150px;
+  height: auto;
+  margin: 28px auto 0;
+  opacity: .5;
+  rotate: -14deg;
+  pointer-events: none;
+}
+
+/* ---------- 椭圆肖像小相框 ---------- */
+.salon-cameo {
+  width: 44px;
+  height: 52px;
+  border-radius: 3px;
+  object-fit: cover;
+  box-shadow: none;
+}
+
+.salon-cameo--initial {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: serif;
+  font-weight: 700;
+  font-size: 15px;
+  color: #2a2724;
+}
+
+/* 在线小点：苔绿 / 本人灰玫瑰 / 离线石灰 */
+.salon-presence {
+  position: absolute;
+  right: -2px;
+  bottom: 1px;
+  width: 11px;
+  height: 11px;
+  border-radius: 3px;
+  border: 2px solid #fbf6ec;
+  background: #a8a29e;
+}
+.salon-presence[data-state="online"] { background: #8fa98a; }
+.salon-presence[data-state="human"] { background: #c69390; }
+
+/* ---------- 火漆印未读数：象牙白火漆染成成员专属色 ---------- */
+.salon-seal {
+  position: relative;
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.salon-seal-tint,
+.salon-seal-art {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.salon-seal-tint {
+  background: var(--seal-color, #c69390);
+  -webkit-mask: var(--seal-mask) center / contain no-repeat;
+  mask: var(--seal-mask) center / contain no-repeat;
+}
+
+.salon-seal-art {
+  mix-blend-mode: multiply;
+}
+
+.salon-seal-count {
+  position: relative;
+  font-family: serif;
+  font-size: 11px;
+  font-weight: 700;
+  color: #fffaf0;
+  text-shadow: none;
+}
+
+/* ---------- 侧边栏 ---------- */
+.salon-sidebar {
+  background: linear-gradient(180deg, #fbf6ecb3, #f5eee399);
+  border-right: 1px solid transparent;
+  border-image: linear-gradient(180deg, #c9a96a00, #c9a96a59 20%, #c9a96a59 80%, #c9a96a00) 1;
+}
+
+.salon-side-btn {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform .2s ease;
+}
+
+.salon-side-btn:active { transform: scale(.94); }
+
+.salon-side-btn:focus-visible {
+  outline: 2px solid #b08a4a;
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+.salon-side-icon {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  opacity: .72;
+  filter: saturate(.75);
+  transition: opacity .25s ease, filter .25s ease, transform .25s ease;
+}
+
+.salon-side-btn[data-active] .salon-side-icon {
+  opacity: 1;
+  filter: none;
+  transform: scale(1.08);
+}
+
+/* 选中：底下晕开一小团水彩 */
+.salon-side-btn::before {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  border-radius: 3px;
+  background: radial-gradient(closest-side, #e2aea4e6, #edcdb4b3 55%, transparent);
+  opacity: 0;
+  transform: scale(.6) rotate(-12deg);
+  transition: opacity .3s ease, transform .35s cubic-bezier(.2, .8, .2, 1);
+}
+
+.salon-side-btn[data-active]::before {
+  opacity: 1;
+  transform: scale(1) rotate(0deg);
+}
+
+.salon-side-label {
+  position: relative;
+  margin-top: -1px;
+  font-size: 10px;
+  line-height: 1;
+  color: #6b5a44;
+}
+
+.salon-side-avatar {
+  position: relative;
+  width: 28px;
+  height: 28px;
+  border-radius: 3px;
+  object-fit: cover;
+  box-shadow: none;
+  opacity: .85;
+  transition: opacity .25s ease, transform .25s ease;
+}
+
+.salon-side-btn[data-active] .salon-side-avatar {
+  opacity: 1;
+  transform: scale(1.08);
+  box-shadow: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .salon-letter,
+  .salon-side-btn,
+  .salon-side-btn::before,
+  .salon-side-icon,
+  .salon-side-avatar { transition: none; }
+}
+
+/* ============================================
+   对话页 · 摊开的一张信纸
+============================================ */
+
+/* 信纸横格：只在「信笺」气泡样式下出现，别的样式保持原样 */
+.letter-room-rules {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background-image: none;
+}
+
+.letter-room-header,
+.letter-room-footer {
+  background: linear-gradient(180deg, #fbf6ecd9, #f6efe2cc);
+}
+.letter-room-header {
+  border-bottom: 1px solid transparent;
+  border-image: linear-gradient(90deg, #c9a96a00, #c9a96a73 15%, #c9a96a73 85%, #c9a96a00) 1;
+  box-shadow: none;
+}
+.letter-room-footer {
+  border-top: 1px solid transparent;
+  border-image: linear-gradient(90deg, #c9a96a00, #c9a96a73 15%, #c9a96a73 85%, #c9a96a00) 1;
+  box-shadow: none;
+}
+
+/* 顶栏名字牌 */
+.letter-room-title {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.1;
+  padding: 2px 10px;
+  border-radius: 3px;
+  background: none;
+  border: 0;
+  color: #2a2724;
+  -webkit-tap-highlight-color: transparent;
+}
+.letter-room-title:active { background: #c9a96a1f; }
+.letter-room-title:focus-visible { outline: 2px solid #b08a4a; outline-offset: 2px; }
+.letter-room-status {
+  font-family: Georgia, 'Songti SC', serif;
+  font-style: italic;
+  font-size: 10px;
+  color: #8a7a62;
+}
+
+/* 头像：金边椭圆小相框 */
+.letter-cameo {
+  width: 34px;
+  height: 40px;
+  border-radius: 3px;
+  object-fit: cover;
+  box-shadow: none;
+}
+
+/* 发信人 · 时间：衬线斜体 */
+.letter-byline {
+  font-family: Georgia, 'Songti SC', serif;
+  font-style: italic;
+  color: #8a7a62;
+}
+
+/* 日期分隔：— 十月十六日 · 星期五 — */
+.letter-date {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 4px 8px;
+  font-family: Georgia, 'Songti SC', serif;
+  font-style: italic;
+  font-size: 11px;
+  color: #8a7a62;
+  letter-spacing: .06em;
+}
+.letter-date::before,
+.letter-date::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, #c9a96a00, #c9a96a8c);
+}
+.letter-date::after { background: linear-gradient(90deg, #c9a96a8c, #c9a96a00); }
+
+/* 开篇问候 */
+.letter-greeting {
+  display: inline-block;
+  max-width: 88%;
+  padding: 4px 6px;
+  font-family: Georgia, 'Songti SC', serif;
+  font-style: italic;
+  font-size: 12px;
+  color: #6b5a44;
+}
+
+/* 提示纸条：夹在顶栏下面，颜色压低 */
+.letter-note {
+  position: relative;
+  z-index: 20;
+  margin: 6px 12px 0;
+  padding: 5px 10px;
+  border-radius: 3px;
+  background: #fdf8eee6;
+  border: 1px solid #c9a96a59;
+  border-left: 3px solid var(--note-accent, #c9a96a);
+  box-shadow: none;
+  font-family: Georgia, 'Songti SC', serif;
+  font-size: 12px;
+  color: #5a4a36;
+}
+.letter-note[data-tone="warn"] { --note-accent: #c69390; color: #7a4a42; }
+
+/* 输入：信纸底边的一条书写横线 */
+.letter-room-input {
+  width: 100%;
+  padding: 8px 4px 6px;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid #b89a6380;
+  border-radius: 3px;
+  color: #2a2724;
+  font-size: 16px;
+  transition: border-color .2s ease;
+}
+.letter-room-input::placeholder { color: #8a7a62b3; font-style: italic; font-family: Georgia, 'Songti SC', serif; }
+.letter-room-input:focus { outline: none; border-bottom-color: #a0783c; box-shadow: none; }
+.letter-room-input:disabled { opacity: .55; }
+
+/* 发送：一枚火漆印，点下去像盖章 */
+.letter-room-seal {
+  position: relative;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  padding: 0;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform .18s cubic-bezier(.3, 1.6, .5, 1), filter .2s ease, opacity .2s ease;
+}
+.letter-room-seal img {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 3px 4px #5a463059);
+  pointer-events: none;
+}
+.letter-room-seal:active:not(:disabled) { transform: scale(.82) rotate(-8deg); }
+.letter-room-seal:disabled { cursor: not-allowed; opacity: .45; filter: grayscale(.6); }
+.letter-room-seal:focus-visible { outline: 2px solid #b08a4a; outline-offset: 2px; border-radius: 3px; }
+
+/* 输入栏的小工具按钮：去掉白色毛玻璃方块 */
+.letter-room-tool {
+  padding: 8px;
+  border-radius: 3px;
+  background: none;
+  border: 1px solid transparent;
+  color: #6b5a44;
+  cursor: pointer;
+  transition: background-color .2s ease;
+}
+.letter-room-tool:hover,
+.letter-room-tool:active { background: #c9a96a26; }
+.letter-room-tool:disabled { opacity: .4; cursor: not-allowed; }
+.letter-room-tool[data-on] { background: #e2aea44d; color: #7a4a42; }
+.letter-room-tool:focus-visible { outline: 2px solid #b08a4a; outline-offset: 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .letter-room-seal,
+  .letter-room-input,
+  .letter-room-tool { transition: none; }
+}
+
+/* Base appearance uses system fonts and neutral controls. */
