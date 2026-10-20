@@ -1,6 +1,6 @@
 # Third-party notices
 
-Luma's public source preserves file-level licenses and bundled dependency notices. A project-level license, when present, does not replace these terms.
+Luma's own public code is provided under the MIT license in `LICENSE`. File-level licenses and bundled dependency notices remain applicable to the corresponding third-party materials.
 
 - Files carrying an Apache-2.0 SPDX header retain that license. The full text is included in `licenses/Apache-2.0.txt`.
 - `apps/desktop/src/assets/PinyonScript-Regular.ttf` retains its accompanying SIL Open Font License text.

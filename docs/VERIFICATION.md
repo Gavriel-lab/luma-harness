@@ -1,4 +1,6 @@
-# Verification for public v0.1.0
+# Verification for public runtime v0.1.0
+
+The v0.1.1 distribution adds MIT licensing and notices. Its runtime code is unchanged; the results below apply to both releases.
 
 Checked on Windows, 2026-10-20, using a fresh isolated public-export data directory. The original private runtime, source, data and cloud deployment were not used as test state or modified by this export.
 

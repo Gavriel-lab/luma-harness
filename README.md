@@ -71,3 +71,7 @@ node scripts/smoke.mjs
 `smoke.mjs` 使用自己启动的合成 HTTP/SSE 服务验证两端与保存链路，不消耗真实模型额度。默认使用已安装的 Edge；Chrome 可设置 `LUMA_TEST_BROWSER=chrome`。测试数据留在 `.local/`，不会提交。
 
 外部账户、凭据、`.local/`、运行数据、历史 Git 提交和原项目的私人记忆实现不包含在发行包中。
+
+## 许可
+
+项目自身代码采用 [MIT](LICENSE)，允许使用、修改和商用，保留版权与许可声明。文件内已标注的第三方代码、字体和资源继续遵守各自许可证，见 [NOTICE.md](NOTICE.md)。

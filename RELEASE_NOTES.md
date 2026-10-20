@@ -1,6 +1,10 @@
-# Luma Harness v0.1.0
+# Luma Harness v0.1.1
+
+This release adds the explicitly selected MIT license and copyright notices to all distributions. Runtime code is unchanged from v0.1.0; the existing runtime verification applies.
 
 Public standalone export of the desktop/mobile work Harness, with new Git history and no original team roster or private operating data.
+
+Luma's own code and original appearance materials are MIT licensed. Preserve the copyright/permission notice and the separate third-party notices.
 
 - Blank configurable members; API/CLI profile selection and native worker adapter seams.
 - Existing work Broker, context/permission boundaries, review/rejection and originating-chat delivery.
@@ -11,9 +15,9 @@ Public standalone export of the desktop/mobile work Harness, with new Git histor
 
 Release assets:
 
-- `luma-harness-windows-x64-v0.1.0.zip`: unpack and run `Luma Harness.exe`; bring your own provider login/API settings.
-- `luma-harness-source-v0.1.0.zip`: the public source and reproducible setup instructions.
-- `luma-oil-painting-v0.1.0.zip`: optional matching-version appearance source/artwork; apply and rebuild as described in `docs/THEMES.md`.
+- `luma-harness-windows-x64-v0.1.1.zip`: unpack and run `Luma Harness.exe`; bring your own provider login/API settings.
+- `luma-harness-source-v0.1.1.zip`: the public source and reproducible setup instructions.
+- `luma-oil-painting-v0.1.1.zip`: optional matching-version appearance source/artwork; apply and rebuild as described in `docs/THEMES.md`.
 - `SHA256SUMS.txt`: archive checksums.
 
 Physical-phone/cloud setup and a particular VPS are recipient configuration steps. See `docs/VERIFICATION.md` for exact tested boundaries.
