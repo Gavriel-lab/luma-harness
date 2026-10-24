@@ -28,6 +28,7 @@ const fsp = require('node:fs/promises');
 const { pathToFileURL } = require('node:url');
 const { DataStore } = require('./dataStore.cjs');
 const { BridgeBroker } = require('./bridgeBroker.cjs');
+const { createModelForwarder } = require('./modelForwarder.cjs');
 const { BridgeLauncher } = require('./bridgeLauncher.cjs');
 const { CredentialsStore } = require('./credentialsStore.cjs');
 const { ChatService } = require('./chatService.cjs');
@@ -144,7 +145,7 @@ let authorityMutationQueue = Promise.resolve();
 function requestAuthoritativeMutation(command) {
   const run=()=>new Promise(resolve=>{
     if(!mainWindow||mainWindow.isDestroyed()){resolve({ok:false,applied:false,reason:'小屋窗口未就绪'});return;}
-    if(!['create-ticket','reject-review','ticket-origin-reported'].includes(command?.operation)&&!['mobile-chat','mobile-chat-events','companion-message','mobile-message-delete'].includes(command?.type)){resolve({ok:false,applied:false,reason:'不支持的权威写入'});return;}
+    if(!['create-ticket','reject-review','ticket-origin-reported','approve-plan','user-accept-project','user-revise-project','patch-task','update-plan'].includes(command?.operation)&&!['mobile-chat','mobile-chat-events','companion-message','mobile-message-delete'].includes(command?.type)){resolve({ok:false,applied:false,reason:'不支持的权威写入'});return;}
     const mutationId='authority_'+require('node:crypto').randomUUID();
     const timer=setTimeout(()=>{authorityMutationWaiters.delete(mutationId);resolve({ok:false,applied:false,reason:'权威数据保存确认超时，请读取实际状态后重试'});},20000);
     authorityMutationWaiters.set(mutationId,{resolve,timer,command});
@@ -353,7 +354,7 @@ if (!isMemorySyncMode && app && app.whenReady) {
 
     if (!isDev) registerAppProtocol();
 
-    bridgeBroker = new BridgeBroker({dir:path.join(app.getPath('userData'),'xiaowu-bridge'),getData:getAuthoritativeData,mutateTickets:requestAuthoritativeMutation,notify:snapshot=>{if(mainWindow&&!mainWindow.isDestroyed())mainWindow.webContents.send('bridge:changed',snapshot);},onContext:(job,packet)=>{
+    bridgeBroker = new BridgeBroker({dir:path.join(app.getPath('userData'),'xiaowu-bridge'),getData:getAuthoritativeData,mutateTickets:requestAuthoritativeMutation,modelForwarder:createModelForwarder({getAuthoritativeData,credentialsStore}),notify:snapshot=>{if(mainWindow&&!mainWindow.isDestroyed())mainWindow.webContents.send('bridge:changed',snapshot);},onContext:(job,packet)=>{
       if(job.kind==='chat') {
         const receipt = bridgeBroker.receipt(job,packet);
         deliveredMemoryReceipts.set(job.requestId,receipt);
@@ -409,6 +410,7 @@ if (!isMemorySyncMode && app && app.whenReady) {
     });
     if (bridgeBroker) {
       bridgeBroker.onLivingRoomMessage = msg => loungeService?.onLivingRoomMessage(msg);
+      bridgeBroker.attachCoordinatorReviewer({ startChat: startAuthoritativeChat, getData: getAuthoritativeData });
     }
 
     studyService = new StudyService({
@@ -907,11 +909,20 @@ if (ipcMain) {
       }
     }
   });
-  for(const operation of ['snapshot','register','dispatch','cancel','accept','chat-route','launch','resume','dispatch-channel']) {
+  ipcMain.on('authority:ready', (event) => {
+    if (!senderOk(event)) return;
+    void bridgeBroker?.recoverPendingHandoffs?.();
+  });
+  ipcMain.handle('authority:ready', async (event) => {
+    if (!senderOk(event)) return reject();
+    return bridgeBroker ? await bridgeBroker.recoverPendingHandoffs() : { checked: 0, recovered: 0 };
+  });
+  for(const operation of ['snapshot','register','dispatch','cancel','accept','chat-route','launch','resume','dispatch-channel','approve-plan','user-accept','user-revise','schedule-work','ready']) {
     ipcMain.handle('bridge:'+operation,async(event,payload)=>{
       if(!senderOk(event)||!bridgeBroker)return reject();
       try {
         if(operation==='snapshot')return bridgeBroker.snapshot();
+        if(operation==='ready')return await bridgeBroker.recoverPendingHandoffs();
         if(operation==='register'){
           const selected=await dialog.showOpenDialog(mainWindow,{title:'批准此成员的工作目录',properties:['openDirectory']});
           if(selected.canceled)return {ok:false,reason:'已取消登记'};
@@ -920,6 +931,10 @@ if (ipcMain) {
         if(operation==='dispatch')return bridgeBroker.dispatch(payload||{});
         if(operation==='cancel')return bridgeBroker.cancel(payload?.jobId);
         if(operation==='accept')return bridgeBroker.accept(payload?.jobId);
+        if(operation==='approve-plan')return await bridgeBroker.approvePlan({ticketId:payload?.ticketId,planVersion:payload?.planVersion,explicit:true});
+        if(operation==='user-accept')return await bridgeBroker.userAcceptProject({ticketId:payload?.ticketId,feedback:payload?.feedback,explicit:true});
+        if(operation==='user-revise')return await bridgeBroker.userReviseProject({ticketId:payload?.ticketId,feedback:payload?.feedback,explicit:true});
+        if(operation==='schedule-work')return bridgeBroker.scheduleCoordinatorWork(payload?.ticketId);
         if(operation==='chat-route')return bridgeBroker.enableChat(payload?.agentId,payload?.enabled);
         if(operation==='launch')return await bridgeLauncher.launch(payload?.agentId);
         if(operation==='dispatch-channel')return bridgeBroker.setDispatchChannelEnabled(payload?.enabled);
@@ -950,7 +965,11 @@ ipcMain.handle('data:save', async (event, payload, revision, sessionId) => {
   if (tooBig(payload, MAX_PAYLOAD_BYTES)) {
     return { ok: false, applied: false, reason: '数据体积超出上限，已拒绝写入' };
   }
-  return store.save(payload, Number.isInteger(revision) ? revision : undefined, sessionId);
+  const result = await store.save(payload, Number.isInteger(revision) ? revision : undefined, sessionId);
+  if (result?.ok && result?.applied) {
+    void bridgeBroker?.recoverPendingHandoffs?.();
+  }
+  return result;
 });
 
 ipcMain.handle('data:backup-raw', (event, raw) => {

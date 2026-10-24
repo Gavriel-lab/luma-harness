@@ -1,7 +1,7 @@
 {
   "name": "luma-harness-desktop",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
   "description": "Luma desktop and authoritative multi-agent host",
   "main": "electron/main.cjs",
@@ -10,7 +10,7 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "typecheck": "tsc -b --pretty",
-    "test": "vitest run src/store/authorityMutations.test.ts src/store/attachments.test.ts src/adapter/ChatBus.test.ts",
+    "test": "vitest run src/store/authorityMutations.test.ts src/store/attachments.test.ts src/adapter/ChatBus.test.ts src/components/Workbench.test.ts",
     "test:watch": "vitest",
     "verify": "npm run typecheck && npm run test && npm run build",
     "desktop:dev": "node scripts/desktop-dev.mjs",
@@ -21,7 +21,7 @@
     "lucide-react": "0.469.0",
     "react": "18.3.1",
     "react-dom": "18.3.1",
-    "undici": "8.11.2"
+    "undici": "8.12.2"
   },
   "devDependencies": {
     "@types/node": "22.20.4",

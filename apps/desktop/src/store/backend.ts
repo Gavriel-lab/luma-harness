@@ -14,7 +14,9 @@ import type { AppData } from '../types';
 
 export interface DesktopBridge {
   isDesktop: true;
+  openLocalMobile?:()=>Promise<{ok:boolean;reason?:string}>;
   autonomy?: { presence: () => Promise<{running:string|null}> };
+  notifyAuthorityReady?: () => void;
   onAuthoritativeMutation?: (handler: (command: import('./authorityMutations').AuthorityMutation) => Promise<{ok:boolean;applied:boolean;reason?:string}>) => () => void;
   bridge?:{
     snapshot:()=>Promise<import('../components/BridgeControls').BridgeSnapshot>;
@@ -22,9 +24,14 @@ export interface DesktopBridge {
     dispatch:(payload:{ticketId:string;taskId:string;requestId:string})=>Promise<{ok:boolean;reason?:string}>;
     cancel:(jobId:string)=>Promise<{ok:boolean;reason?:string}>;
     accept:(jobId:string)=>Promise<{ok:boolean;reason?:string}>;
+    approvePlan:(ticketId:string,planVersion:number)=>Promise<{ok:boolean;stage?:string;version?:number;reason?:string;scheduled?:number}>;
+    userAccept:(ticketId:string,feedback?:string)=>Promise<{ok:boolean;stage?:string;reason?:string}>;
+    userRevise:(ticketId:string,feedback:string)=>Promise<{ok:boolean;stage?:string;reason?:string}>;
+    scheduleWork:(ticketId:string)=>Promise<{ok:boolean;scheduled?:number;reason?:string}>;
     launch:(agentId:string)=>Promise<{ok:boolean;reason?:string}>;
     resume:(jobId:string)=>Promise<{ok:boolean;reason?:string}>;
     chatRoute:(agentId:string,enabled:boolean)=>Promise<{ok:boolean;reason?:string}>;
+    ready?:()=>Promise<{checked:number;recovered:number}>;
     onChanged:(handler:(snapshot:import('../components/BridgeControls').BridgeSnapshot)=>void)=>()=>void;
   };
   beginSession(sessionId: string): Promise<{ ok: boolean; seq?: number; reason?: string }>;

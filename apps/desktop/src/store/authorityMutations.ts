@@ -1,9 +1,14 @@
-import type { AppData, Ticket, Message, ContextCheckpoint } from '../types';
+import type { AppData, Ticket, Message, ContextCheckpoint, TaskItem, ProjectPlan } from '../types';
 
 export type AuthorityMutation =
   | { operation: 'create-ticket'; requestId: string; ticket: Ticket }
   | { operation: 'reject-review'; requestId: string; ticketId: string; taskId: string; assigneeId: string; jobId: string; decision: NonNullable<Ticket['reviewDecisions']>[number] }
   | { operation: 'ticket-origin-reported'; requestId: string; ticketId: string }
+  | { operation: 'approve-plan'; requestId: string; ticketId: string; planVersion: number; approvedAt: number; approvedBy: 'user' }
+  | { operation: 'user-accept-project'; requestId: string; ticketId: string; userAcceptedAt: number; userAcceptedBy: 'user'; feedback?: string }
+  | { operation: 'user-revise-project'; requestId: string; ticketId: string; feedback: string; scopeExpansion?: boolean; scopeDecision?: NonNullable<Ticket['scopeDecisions']>[number] }
+  | { operation: 'patch-task'; requestId: string; ticketId: string; taskId: string; patch: Partial<TaskItem> }
+  | { operation: 'update-plan'; requestId: string; ticketId: string; plan: ProjectPlan }
   | { type: 'mobile-chat'; messages: Message[] }
   | { type: 'companion-message'; message: Message }
   | { type: 'mobile-message-delete'; conversationId: string; messageId: string; mode: 'hide' | 'purge'; part?: string }
@@ -12,9 +17,157 @@ export type AuthorityMutation =
 /** Main-process commands only. This function cannot patch persona, permissions,
  * settings or arbitrary messages; it preserves all unrelated current state. */
 export function applyAuthorityMutation(state: AppData, command: AuthorityMutation): AppData {
+  if ('operation' in command && command.operation === 'approve-plan') {
+    const ticket = state.tickets.find(t => t.id === command.ticketId);
+    if (!ticket) return state;
+    if (ticket.plan && ticket.plan.version !== command.planVersion) return state;
+    const plan = ticket.plan ? {
+      ...ticket.plan,
+      status: 'approved' as const,
+      approvedAt: command.approvedAt,
+      approvedBy: 'user' as const,
+    } : undefined;
+    const goal = (plan && plan.goal) ? plan.goal : ticket.goal;
+    const tasks = (plan && Array.isArray(plan.tasks) && plan.tasks.length > 0) ? plan.tasks.map(t => ({
+      id: t.id,
+      title: t.title,
+      assigneeId: t.assigneeId ?? null,
+      status: 'todo' as const,
+      acceptance: t.acceptance,
+      dependencies: Array.isArray(t.dependencies) ? t.dependencies : [],
+      deliverables: t.deliverables
+    })) : ticket.tasks;
+    return {
+      ...state,
+      tickets: state.tickets.map(t => t.id === ticket.id ? {
+        ...t,
+        stage: 'in_progress' as const,
+        approvedPlanVersion: command.planVersion,
+        plan,
+        goal,
+        tasks,
+        updatedAt: command.approvedAt,
+      } : t),
+    };
+  }
+  if ('operation' in command && command.operation === 'user-accept-project') {
+    const ticket = state.tickets.find(t => t.id === command.ticketId);
+    if (!ticket) return state;
+    return {
+      ...state,
+      tickets: state.tickets.map(t => t.id === ticket.id ? {
+        ...t,
+        stage: 'completed' as const,
+        userAcceptedAt: command.userAcceptedAt,
+        userAcceptedBy: 'user' as const,
+        userFeedback: command.feedback || t.userFeedback,
+        updatedAt: command.userAcceptedAt,
+      } : t),
+    };
+  }
+  if ('operation' in command && command.operation === 'user-revise-project') {
+    const ticket = state.tickets.find(t => t.id === command.ticketId);
+    if (!ticket) return state;
+    const isUnapprovedDraft = ticket.plan ? (ticket.stage === 'draft' || ticket.approvedPlanVersion === undefined || ticket.plan.status === 'draft') : false;
+    const isExpanded = command.scopeExpansion === true;
+
+    if (isUnapprovedDraft) {
+      // 未批准草案的修改反馈：保持 draft 状态，绝不自动批准
+      const plan = ticket.plan ? {
+        ...ticket.plan,
+        status: 'draft' as const,
+      } : undefined;
+      return {
+        ...state,
+        tickets: state.tickets.map(t => t.id === ticket.id ? {
+          ...t,
+          stage: 'draft' as const,
+          plan,
+          userFeedback: command.feedback,
+          scopeDecisions: command.scopeDecision ? [...(t.scopeDecisions || []), command.scopeDecision] : t.scopeDecisions,
+          updatedAt: Date.now(),
+        } : t),
+      };
+    }
+
+    if (isExpanded) {
+      // 已批准项目的实质扩范围：升为新版草案并等待重新批准，撤销旧授权
+      const plan = ticket.plan ? {
+        ...ticket.plan,
+        version: (ticket.plan.version || 1) + 1,
+        status: 'draft' as const,
+        approvedAt: undefined,
+        approvedBy: undefined,
+      } : undefined;
+      return {
+        ...state,
+        tickets: state.tickets.map(t => t.id === ticket.id ? {
+          ...t,
+          stage: 'draft' as const,
+          plan,
+          approvedPlanVersion: undefined,
+          userFeedback: command.feedback,
+          scopeDecisions: command.scopeDecision ? [...(t.scopeDecisions || []), command.scopeDecision] : t.scopeDecisions,
+          updatedAt: Date.now(),
+        } : t),
+      };
+    }
+
+    // 已批准范围内的微调：保持 in_progress 推进，递增修订轮次
+    const plan = ticket.plan ? {
+      ...ticket.plan,
+      status: 'approved' as const,
+    } : undefined;
+    const revisionRound = (ticket.revisionRound || 0) + 1;
+    const isArrayAffected = Array.isArray(command.scopeDecision?.affectedTaskIds);
+    const affectedSet = isArrayAffected ? new Set(command.scopeDecision!.affectedTaskIds) : null;
+    return {
+      ...state,
+      tickets: state.tickets.map(t => t.id === ticket.id ? {
+        ...t,
+        stage: 'in_progress' as const,
+        originReported: false,
+        revisionRound,
+        plan,
+        userFeedback: command.feedback,
+        scopeDecisions: command.scopeDecision ? [...(t.scopeDecisions || []), command.scopeDecision] : t.scopeDecisions,
+        tasks: t.tasks.map(k => (affectedSet ? affectedSet.has(k.id) : true) ? { ...k, status: 'todo' as const } : k),
+        updatedAt: Date.now(),
+      } : t),
+    };
+  }
+  if ('operation' in command && command.operation === 'patch-task') {
+    const ticket = state.tickets.find(t => t.id === command.ticketId);
+    if (!ticket) return state;
+    return {
+      ...state,
+      tickets: state.tickets.map(t => t.id === ticket.id ? {
+        ...t,
+        tasks: t.tasks.map(k => k.id === command.taskId ? { ...k, ...command.patch } : k),
+        updatedAt: Date.now(),
+      } : t),
+    };
+  }
+  if ('operation' in command && command.operation === 'update-plan') {
+    const ticket = state.tickets.find(t => t.id === command.ticketId);
+    if (!ticket) return state;
+    const isDraft = command.plan.status === 'draft';
+    const isNewVersion = ticket.approvedPlanVersion === undefined || command.plan.version !== ticket.approvedPlanVersion;
+    const shouldInvalidateAuth = ticket.stage === 'in_progress' && (isDraft || isNewVersion);
+    const newStage = shouldInvalidateAuth ? 'draft' as const : ticket.stage;
+    return {
+      ...state,
+      tickets: state.tickets.map(t => t.id === ticket.id ? {
+        ...t,
+        plan: command.plan,
+        stage: newStage,
+        updatedAt: Date.now(),
+      } : t),
+    };
+  }
   if ('type' in command && command.type === 'companion-message') {
     const m = command.message;
-    const conv = state.conversations.find(c => c.id === m?.conversationId && (c.kind === 'living-room' || (c.kind === 'direct' && c.agentId === m.agentId)));
+    const conv = state.conversations.find(c => c.id === m?.conversationId && ((c.kind === 'direct' && c.agentId === m.agentId) || c.kind === 'living-room'));
     if (!conv || m.sourceChannel !== 'luma' || !m.requestId || !m.text.trim() || m.status !== 'sent' || m.demo || !Number.isFinite(m.createdAt)) return state;
     if (!state.agents.some(a => a.id === m.agentId && a.kind === 'ai' && !a.removed) || state.messages.some(x => x.id === m.id) || state.purgedMessageIds?.includes(m.id)) return state;
     return { ...state, messages: [...state.messages, m] };
@@ -24,7 +177,7 @@ export function applyAuthorityMutation(state: AppData, command: AuthorityMutatio
     if (!ticket || ticket.originReported) return state;
     return {
       ...state,
-      tickets: state.tickets.map(t => t.id === ticket.id ? { ...t, originReported: true, updatedAt: Date.now() } : t)
+      tickets: state.tickets.map(t => t.id === ticket.id ? { ...t, originReported: true, stage: 'pending_user_acceptance' as const, updatedAt: Date.now() } : t)
     };
   }
   if ('operation' in command && command.operation === 'create-ticket') {

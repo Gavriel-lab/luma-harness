@@ -131,12 +131,67 @@ export interface TaskItem {
   status: TaskStatus;
   assigneeId: AgentId | null;
   acceptance?: string;
+  deliverables?: string;
+  dependencies?: string[];
   execution?: Record<string, unknown>;
 }
 
 export interface Artifact {
   updatedAt: number;
   text: string;
+}
+
+export type ProjectStage =
+  | 'draft'                      // 方案起草/讨论中，尚未开工
+  | 'in_progress'                // 使用者已批准开工，协调者 coordinator 正在统筹协调派发
+  | 'pending_user_acceptance'    // 内部子任务全 done，协调者自检整合通过，等待使用者最终验收
+  | 'completed'                  // 使用者在工作台确认验收，项目完成
+  | 'revised';                   // 使用者反馈需要修改/扩范围，生成新方案版本待重新批准
+
+export interface ProjectPlanTask {
+  id: string;
+  title: string;
+  assigneeId?: AgentId | null;
+  deliverables?: string;
+  acceptance?: string;
+  dependencies?: string[];
+}
+
+export interface ProjectPlan {
+  version: number;
+  title: string;
+  goal: string;
+  deliverables?: string;
+  acceptanceCriteria?: string;
+  conversationId?: string;
+  tasks: ProjectPlanTask[];
+  status: 'draft' | 'approved' | 'revised';
+  approvedAt?: number | null;
+  approvedBy?: 'user' | null;
+  approvalNote?: string;
+}
+
+export interface ScopeDecisionRecord {
+  requestId: string;
+  ticketId?: string;
+  scopeExpansion: boolean;
+  reason: string;
+  at: number;
+  source?: string;
+  status?: string;
+  planVersion?: number;
+  revisionRound?: number;
+  affectedTaskIds?: string[];
+  proposedChanges?: string;
+  newDirectories?: string[];
+  newTools?: string[];
+  inputSnapshot?: {
+    goal?: string;
+    feedback?: string;
+    tasks?: Array<{ id: string; title: string }>;
+    authorizedDirectories?: string[];
+    authorizedTools?: string[];
+  };
 }
 
 export interface Ticket {
@@ -157,6 +212,17 @@ export interface Ticket {
   originReported?: boolean;
   coordinatorCreation?: { requestId: string; payloadHash: string };
   reviewDecisions?: Array<{ jobId: string; taskId: string; requestId: string; reason: string; attemptId: string; reportId: string; at: number }>;
+  scopeDecisions?: Array<ScopeDecisionRecord>;
+
+  // 工单42/44：方案持久化、项目阶段与最终验收
+  plan?: ProjectPlan;
+  stage?: ProjectStage;
+  approvedPlanVersion?: number | null;
+  revisionRound?: number;
+  userAcceptedAt?: number | null;
+  userAcceptedBy?: string | null;
+  userFeedback?: string | null;
+  notifiedForAcceptance?: boolean;
 }
 
 export type ThemeId = 'fusion' | 'day' | 'night';

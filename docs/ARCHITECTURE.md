@@ -1,5 +1,13 @@
 # Architecture and work contract
 
+## v0.2 execution and acceptance
+
+The [Pi SDK worker](PI.md) implements the existing claim/context/heartbeat/event/report contract with scoped read/write/edit/run tools and a host-side model forwarder. It does not own a second DataStore or scheduler. The host resolves the registered member's API Profile and credentials without cross-member fallback.
+
+Collaborative plans have an explicit approval lifecycle: draft, human approval, dependency-based dispatch, worker review, coordinator internal acceptance, pending user acceptance, and final human completion. Only desktop user actions authorize plan approval or final acceptance; coordinator/model tokens are rejected for these operations. Partial revision preserves unaffected work, plan/attempt identities and evidence.
+
+Work events remain in the backend report channel. Collaborative project handoffs notify the coordinator direct conversation; ordinary legacy tickets keep their original direct-conversation return. Recovery waits for renderer hydration and `authority:ready`/`bridge:ready`. Persisted sent messages with `requestId=rep_pub_<ticketId>` determine notification completion; a failed save must remain retryable.
+
 ## Components and ownership
 
 | Component | Implementation | Responsibility |

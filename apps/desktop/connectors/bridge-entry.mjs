@@ -9,6 +9,11 @@ if(manifest.executorId==='opencode') {
   await runOpenCodeBridge({manifestPath:process.argv[index+1]});
   process.exit(0);
 }
+if(manifest.executorId==='pi') {
+  const { runPiBridge } = await import('./pi/worker.mjs');
+  await runPiBridge({manifestPath:process.argv[index+1]});
+  process.exit(0);
+}
 const token=fs.readFileSync(manifest.tokenFile,'utf8').trim();
 const controller=new AbortController();
 let stopWork=()=>{};
@@ -26,9 +31,9 @@ let chatExecute,chatCancel;
 let work;
 if(manifest.executorId==='kiro'){
   const {KiroChatExecutor}=await import('./kiro/chat.mjs');
-  const executor=new KiroChatExecutor({workspace:manifest.workspace,model:manifest.model||'claude-opus-5.5'});
+  const executor=new KiroChatExecutor({workspace:manifest.workspace,model:manifest.model||process.env.LUMA_KIRO_MODEL||''});
   const {KiroWorkRunner,runKiroWorkLoop}=await import('./kiro/work.mjs');
-  const workRunner=new KiroWorkRunner({model:manifest.model||'claude-opus-5.5'});
+  const workRunner=new KiroWorkRunner({model:manifest.model||process.env.LUMA_KIRO_MODEL||''});
   work=runKiroWorkLoop({manifest,token,signal:controller.signal,runner:workRunner,stateDir:path.join(path.dirname(manifest.tokenFile),'kiro-state'),onStop:stop});
   stopWork=()=>{executor.cancel();workRunner.abort();};
   chatExecute=packet=>executor.execute(packet);
@@ -45,7 +50,7 @@ if(manifest.executorId==='kiro'){
   chatExecute=async(packet)=>{const r=await chatExecutor.execute({finalInput:assembleFinalInput(packet).finalInput,workspace:manifest.workspace,timeoutMs:120000});return {ok:r.status==='completed',response:r.finalText||r.summary,error:r.summary};};
   chatCancel=()=>chatExecutor.abort();
 }else{
-  const {BrokerClient,AntigravityRunner,CheckpointStore,DesktopAgentAdapter,ChatHandler}=await import('./antigravity/src/index.js');
+  const {BrokerClient,AntigravityRunner,CheckpointStore,DesktopAgentAdapter,ChatHandler}=await import('./desktop-agent/src/index.js');
   const brokerClient=new BrokerClient({manifestPath:process.argv[index+1],agentId:manifest.agentId,executorId:manifest.executorId});
   brokerClient.setInjectedCredential(token);
   const runner=new AntigravityRunner();

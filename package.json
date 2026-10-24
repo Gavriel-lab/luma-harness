@@ -1,6 +1,6 @@
 {
   "name": "luma-harness",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "description": "Configurable multi-agent work harness with desktop and mobile clients",
@@ -11,11 +11,13 @@
     "setup": "node scripts/setup.mjs",
     "start": "node scripts/start.mjs",
     "build": "npm --prefix apps/desktop run build && npm --prefix apps/mobile run build",
-    "test": "node --test scripts/public-runtime.test.cjs && npm --prefix services/gateway test && npm --prefix apps/desktop test && npm run test:harness",
+    "test": "node --test scripts/public-runtime.test.cjs && npm --prefix services/gateway test && npm --prefix apps/desktop test && npm run test:harness && npm run test:pi && npm run test:workflow",
     "check:privacy": "node scripts/privacy-check.mjs",
     "theme:apply": "node scripts/theme.mjs apply",
     "theme:reset": "node scripts/theme.mjs reset",
     "configure:cloud": "node scripts/configure-cloud.mjs",
-    "test:harness": "node --test apps/desktop/scripts/bridge-contract.test.cjs apps/desktop/scripts/coordinator-authority.test.cjs apps/desktop/electron/dispatchChannel.test.cjs apps/desktop/electron/codexOperations.test.cjs apps/desktop/electron/mobileRelay.test.cjs"
+    "test:harness": "node --test apps/desktop/scripts/bridge-contract.test.cjs apps/desktop/scripts/coordinator-authority.test.cjs apps/desktop/electron/dispatchChannel.test.cjs apps/desktop/electron/codexOperations.test.cjs apps/desktop/electron/mobileRelay.test.cjs",
+    "test:pi": "npm --prefix apps/desktop/connectors/pi test && node --test apps/desktop/electron/piBridge.test.cjs && node apps/desktop/electron/testOrder72MjsArtifact.cjs && node apps/desktop/electron/testOrder76UserAcceptanceHandoff.cjs && node apps/desktop/electron/testOrder78HandoffConvergence.cjs",
+    "test:workflow": "node --test apps/desktop/electron/workbenchCollab.test.cjs && node apps/desktop/electron/testOrder62Fixes.cjs"
   }
 }

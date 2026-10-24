@@ -306,7 +306,12 @@ export function useAppStore(): Store {
           rawPreserved: false,
         });
       } finally {
-        if (alive) setReady(true);
+        if (alive) {
+          setReady(true);
+          readyRef.current = true;
+          window.xiaowuDesktop?.notifyAuthorityReady?.();
+          void window.xiaowuDesktop?.bridge?.ready?.().catch(() => {});
+        }
       }
     })();
     return () => {

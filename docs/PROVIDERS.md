@@ -2,6 +2,8 @@
 
 ## Choose what the route actually provides
 
+The embedded [Pi worker](PI.md) adds a tool-capable API execution route. Configure its member Profile and workspace separately from coordinator setup. CLI subscription routes remain available independently.
+
 | Route | What it provides | What the owner supplies |
 | --- | --- | --- |
 | OpenAI-compatible Profile | Text/image chat through the host's SSE transport | HTTPS Base URL, supported model ID, own API key if required |

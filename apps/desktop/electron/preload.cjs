@@ -19,6 +19,7 @@ const desktopBridge = {
   isDesktop: true,
   openLocalMobile:()=>ipcRenderer.invoke('public:open-mobile'),
   autonomy: { presence: () => ipcRenderer.invoke('autonomy:presence') },
+  notifyAuthorityReady:()=>ipcRenderer.send('authority:ready'),
   onAuthoritativeMutation:handler=>{
     const listener=(_event,{mutationId,command})=>Promise.resolve().then(()=>handler(command))
       .then(result=>ipcRenderer.send('authority:mutation-ack',{mutationId,ok:result?.ok===true,applied:result?.applied===true,reason:result?.reason}))
@@ -31,9 +32,14 @@ const desktopBridge = {
     dispatch:payload=>ipcRenderer.invoke('bridge:dispatch',payload),
     cancel:jobId=>ipcRenderer.invoke('bridge:cancel',{jobId}),
     accept:jobId=>ipcRenderer.invoke('bridge:accept',{jobId}),
+    approvePlan:(ticketId,planVersion)=>ipcRenderer.invoke('bridge:approve-plan',{ticketId,planVersion}),
+    userAccept:(ticketId,feedback)=>ipcRenderer.invoke('bridge:user-accept',{ticketId,feedback}),
+    userRevise:(ticketId,feedback)=>ipcRenderer.invoke('bridge:user-revise',{ticketId,feedback}),
+    scheduleWork:ticketId=>ipcRenderer.invoke('bridge:schedule-work',{ticketId}),
     launch:agentId=>ipcRenderer.invoke('bridge:launch',{agentId}),
     resume:jobId=>ipcRenderer.invoke('bridge:resume',{jobId,confirmed:true}),
     chatRoute:(agentId,enabled)=>ipcRenderer.invoke('bridge:chat-route',{agentId,enabled}),
+    ready:()=>ipcRenderer.invoke('bridge:ready'),
     setDispatchChannel:enabled=>ipcRenderer.invoke('bridge:dispatch-channel',{enabled}),
     onChanged:handler=>{const listener=(_event,snapshot)=>handler(snapshot);ipcRenderer.on('bridge:changed',listener);return()=>ipcRenderer.removeListener('bridge:changed',listener);}
   },

@@ -1,0 +1,15 @@
+{
+  "name": "luma-pi-worker",
+  "private": true,
+  "version": "0.2.0",
+  "type": "module",
+  "scripts": {
+    "test": "node --test controlled-tools.test.mjs run-tool.test.mjs"
+  },
+  "dependencies": {
+    "@earendil-works/pi-coding-agent": "1.4.0"
+  },
+  "overrides": {
+    "undici": "8.12.2"
+  }
+}

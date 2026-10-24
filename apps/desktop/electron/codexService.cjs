@@ -172,6 +172,7 @@ class CodexService {
             if(key==='env')args.push('-c','mcp_servers.xiaowu_workbench.env.ELECTRON_RUN_AS_NODE="1"');
             else args.push('-c',`mcp_servers.xiaowu_workbench.${key}=${JSON.stringify(value)}`);
           }
+          args.push('-c', 'mcp_servers.xiaowu_workbench.tools.xiaowu_workbench.approval_mode="approve"');
         }
         
         let spawnCmd = bin;

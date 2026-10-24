@@ -12,6 +12,14 @@ You choose the team size, member names, personas, models, and working directorie
 
 [Download for Windows](https://github.com/Gavriel-lab/luma-harness/releases/latest) · [Quick start](#quick-start) · [Set up with AI](#give-the-repository-to-your-ai) · [Architecture](docs/ARCHITECTURE.md) · [MIT license](LICENSE)
 
+## v0.2: Embedded Pi execution and complete acceptance handoff
+
+- A built-in Pi SDK worker provides scoped reads, new-file creation, exact edits and structured Node/npm execution checks.
+- The owner approves the plan before dependency-based dispatch. The coordinator reviews worker reports in the backend; the owner confirms final completion in the workbench.
+- Partial revisions preserve unaffected in-flight work. Restart recovery and persisted-notification deduplication are included; ordinary legacy tickets retain their originating direct-conversation return route.
+
+Pi uses the member's own API Profile and credentials. See [Pi worker](docs/PI.md) for setup, permission boundaries and packaging.
+
 ## Why Luma
 
 When you use several AI agents, work can become scattered across windows: one knows the requirements, another edits files, and a third says the task is done. You still have to inspect the artifacts, relay context, and track progress yourself.
@@ -52,10 +60,10 @@ For example, after configuring executors in Luma, you might ask:
 This illustrates the work contract. It requires your own models, executors, and authorized directory:
 
 1. **The coordinator organizes requirements:** it reads the current workbench, defines the goal, scope, assignments, and acceptance criteria, and preserves the originating conversation identity.
-2. **A ticket is created and dispatched:** ticket creation and dispatch are separate operations. Only registered, authorized workers receive work.
+2. **A ticket is created and dispatched:** ticket creation and dispatch are separate operations. Collaborative plans require owner approval before registered, authorized workers receive work.
 3. **Workers perform actual work:** they claim jobs, receive scoped context, work within permitted directories, and report artifact paths, checks, and unknowns.
 4. **The coordinator reviews:** it reads actual artifacts and evidence. Submission enters review; insufficient evidence can be rejected while preserving the original report.
-5. **Results return to the originating conversation:** accepted work is delivered, with repeated requests deduplicated according to the contract. State survives restarts; ambiguous interrupted work awaits explicit handling.
+5. **Results return to the originating conversation:** internally accepted work is delivered; collaborative projects await final human acceptance in the workbench. Repeated requests are deduplicated according to the contract. State survives restarts; ambiguous interrupted work awaits explicit handling.
 
 ```mermaid
 flowchart LR
@@ -127,6 +135,7 @@ synthetic test service as proof that a real model is connected.
 
 | Route | What it provides | What you supply |
 | --- | --- | --- |
+| Embedded Pi SDK worker | Scoped read/write/edit and Node/npm checks through Luma's Broker | The member's compatible API Profile, credentials and authorized workspace; Node/npm for npm-script actions. |
 | OpenAI-compatible API Profile | Model text/image chat through the host | Your Base URL, model ID, and API key if required. |
 | Codex app-server | Local CLI conversations; the coordinator can use the workbench MCP | An installed CLI, your login, an available model, and a workspace. |
 | Kiro / OpenCode / ZCode / Antigravity adapters | Native chat or work integration supported by the corresponding client | A compatible CLI version, your login, a model, and an authorized directory. |
@@ -166,7 +175,7 @@ Model credentials are saved through the host's OS encryption flow; the mobile fr
 
 ## Verification and development
 
-Completed checks include **110 checks**, mobile type checking, both production builds, and synthetic-service reply/persistence verification across both clients using source and the actual Windows EXE. Work-contract checks use the real Broker, serialized storage, and temporary artifacts with controlled executors.
+The v0.2 tests add the Pi tool loop, plan approval, backend review, revision and final human acceptance. See [Verification](docs/VERIFICATION.md) for exact test, scenario, package and cross-client results. Work-contract checks use the real Broker, serialized storage, and temporary artifacts with controlled executors.
 
 ```sh
 npm test

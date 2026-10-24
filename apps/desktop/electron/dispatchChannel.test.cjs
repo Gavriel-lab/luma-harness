@@ -485,9 +485,9 @@ test('8. Origin reported persistence and no repeated report after broker restart
   // 验证第一次汇报已发出
   assert.equal(messagesBefore.length, 1);
 
-  // 验证磁盘上 ticket.originReported 已经通过 applyTicketMutation 落盘为 true
-  const ticketOnDisk = read().tickets.find(t => t.id === ticketId);
-  assert.equal(ticketOnDisk.originReported, true, 'ticket.originReported must be persisted to store');
+  // The saved sent notification, rather than a preemptive flag, proves delivery.
+  const persisted = read().messages.filter(m => m.requestId === 'rep_pub_' + ticketId && m.status === 'sent');
+  assert.equal(persisted.length, 1, 'Exactly one sent notification must be persisted before restart');
 
   // 模拟重启：关闭当前 broker，实例化全新 Broker
   if (broker.server) broker.server.close();

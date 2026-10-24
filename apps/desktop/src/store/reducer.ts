@@ -45,6 +45,10 @@ export type Action =
   | { type: 'selectTicket'; ticketId: TicketId | null }
   | { type: 'createTicket'; ticketId?: TicketId }
   | { type: 'patchTicket'; ticketId: TicketId; patch: Partial<Pick<AppData['tickets'][number], 'title' | 'goal'>> }
+  | { type: 'approvePlan'; ticketId: TicketId; planVersion: number }
+  | { type: 'userAcceptProject'; ticketId: TicketId; feedback?: string }
+  | { type: 'userReviseProject'; ticketId: TicketId; feedback: string }
+  | { type: 'updatePlan'; ticketId: TicketId; plan: import('../types').ProjectPlan }
   | { type: 'setParticipants'; ticketId: TicketId; agentIds: AgentId[] }
   | { type: 'addTask'; ticketId: TicketId; title: string }
   | { type: 'patchTask'; ticketId: TicketId; taskId: string; patch: Partial<{ title: string; status: TaskStatus; assigneeId: AgentId | null }> }
@@ -350,6 +354,72 @@ export function reducer(state: AppData, action: Action): AppData {
         tickets: state.tickets.map((t) => (t.id === action.ticketId ? { ...t, ...action.patch, updatedAt: Date.now() } : t)),
       };
 
+    case 'approvePlan': {
+      const now = Date.now();
+      return {
+        ...state,
+        tickets: state.tickets.map((t) => {
+          if (t.id !== action.ticketId) return t;
+          if (t.plan && t.plan.version !== action.planVersion) return t;
+          const plan = t.plan ? {
+            ...t.plan,
+            status: 'approved' as const,
+            approvedAt: now,
+            approvedBy: 'user' as const,
+          } : undefined;
+          return {
+            ...t,
+            stage: 'in_progress',
+            plan,
+            updatedAt: now,
+          };
+        }),
+      };
+    }
+
+    case 'userAcceptProject': {
+      const now = Date.now();
+      return {
+        ...state,
+        tickets: state.tickets.map((t) => {
+          if (t.id !== action.ticketId) return t;
+          return {
+            ...t,
+            stage: 'completed',
+            userAcceptedAt: now,
+            userAcceptedBy: 'user',
+            userFeedback: action.feedback || t.userFeedback,
+            updatedAt: now,
+          };
+        }),
+      };
+    }
+
+    case 'userReviseProject': {
+      const now = Date.now();
+      return {
+        ...state,
+        tickets: state.tickets.map((t) => {
+          if (t.id !== action.ticketId) return t;
+          const plan = t.plan ? { ...t.plan, status: 'revised' as const } : undefined;
+          return {
+            ...t,
+            stage: 'revised',
+            plan,
+            userFeedback: action.feedback,
+            updatedAt: now,
+          };
+        }),
+      };
+    }
+
+    case 'updatePlan': {
+      return {
+        ...state,
+        tickets: state.tickets.map((t) => (t.id === action.ticketId ? { ...t, plan: action.plan, updatedAt: Date.now() } : t)),
+      };
+    }
+
     case 'setParticipants': {
       const agentIds = action.agentIds.filter((id) => state.agents.some((a) => a.id === id));
       return {
@@ -429,10 +499,8 @@ export function reducer(state: AppData, action: Action): AppData {
       };
 
     case 'projectBridge': {
-      const labels:Record<string,string>={dispatch:'已明确派发',resume:'已确认停止旧客户端，按检查点续接',started:'已开始执行',progress:'已有进度',question:'提出了问题，请查看工作桌',permission_required:'等待权限，请查看工作桌',blocked:'遇到阻塞，请查看工作桌',failed:'执行失败，请查看工作桌',submitted:'已提交成果，等待验收',cancel:'正在取消',accepted:'成果已验收'};
-      const known=new Set([...state.messages.map(m=>m.id), ...(state.purgedMessageIds ?? [])]);
-      const newMessages=action.snapshot.feed.filter(f=>!known.has(f.id)).map(f=>({id:f.id,conversationId:'conv_living_room',agentId:f.agentId,text:'[工单 '+f.ticketId+'/'+f.taskId+'] '+(labels[f.type]||f.type),createdAt:f.createdAt,status:'sent' as const,demo:false,requestId:null}));
-      let changed=newMessages.length>0;
+      // 工作事件留在 Broker；只投影任务与成果，不写入日常聊天上下文。
+      let changed=false;
       const tickets=state.tickets.map(t=>{
         let artifactsText=t.artifacts.text;
         for(const job of action.snapshot.jobs.filter(j=>j.kind==='work'&&j.ticketId===t.id&&j.report&&t.tasks.some(task=>task.id===j.taskId&&task.assigneeId===j.agentId))){
@@ -447,7 +515,7 @@ export function reducer(state: AppData, action: Action): AppData {
         const status:TaskStatus|undefined=job?.state==='done'?'done':job?.state==='review'?'review':job&&['failed','cancelled','rejected'].includes(job.state)?'todo':job&&['doing','offline','blocked','question','permission_required','cancelling'].includes(job.state)?'doing':undefined;
         if(!status||status===task.status)return task;changed=true;return {...task,status};
       })};});
-      return changed?{...state,tickets,messages:[...state.messages,...newMessages]}:state;
+      return changed?{...state,tickets}:state;
     }
     case 'deleteTicket': {
       const tickets = state.tickets.filter((t) => t.id !== action.ticketId);

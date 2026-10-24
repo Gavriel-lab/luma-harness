@@ -1,4 +1,19 @@
-# Verification for public runtime v0.1.0
+# Verification for public v0.2.0
+
+Checked on Windows, 2026-10-24, using isolated public-export data and temporary projects. The private installation and its data were not modified.
+
+- `npm test`: **151 tests passed**, including 25 Pi tool/bridge checks, 9 collaboration lifecycle checks and 7 workbench rendering/state checks alongside existing coverage.
+- An additional **24 scenario checks** cover unaffected in-flight work, submitted artifact access, human acceptance and restart handoff. They use controlled executors, not real model reasoning.
+- Fresh `npm ci` for the Pi connector succeeded. Pi SDK is pinned to 1.4.0; the connector's Undici override and desktop transport use patched 8.12.2. Both production dependency audits report zero findings at this check.
+- Mobile type checking, both frontend production builds and Windows packaging passed.
+- The actual Windows EXE passed the synthetic mobile/API reply and persistence smoke (`LUMA_PUBLIC_SMOKE_OK`, `packaged:true`). No physical phone or real provider account was used.
+- The actual packaged Electron executable, in Node mode, ran **all 12 Pi bridge checks against the packaged Pi connector and SDK dependencies**. This includes write/edit/read-back, test failure, repair, rerun and review submission. Broker and provider fixtures are controlled. Windows uses `--test-isolation=none` for this test-runner invocation.
+- The installed Codex CLI's effective configuration was read to verify approval applies only to `xiaowu_workbench`. No model turn was started by that probe.
+- Bilingual documentation, privacy scans and source/package consistency are checked before publication.
+
+These checks do not certify a recipient's real API entitlement, CLI login, physical phone, VPS, OS sandbox or custom memory provider. Pi project code runs with the host OS user's privileges. See [Pi](PI.md).
+
+## Historical verification for v0.1
 
 The v0.1.1 distribution adds MIT licensing and notices. Its runtime code is unchanged; the results below apply to both releases.
 

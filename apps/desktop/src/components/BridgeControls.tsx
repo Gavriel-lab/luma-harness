@@ -33,13 +33,13 @@ export function BridgeControls({store,onSnapshot}:{store:Store;onSnapshot?:(s:Br
   };
   return <section className="field bridge-controls" aria-label="客户端工作接线">
     <span className="field__label">客户端接线</span>
-    <small>普通艾特用于聊天；任务需要点击“明确派发”。交付后由你或协调者验收。</small>
+    <small>用于维护客户端连接与工作目录。日常分工和内部审核由协调者在后台处理，无需在这里逐项操作。</small>
     <div className="chips">
       <select className="input" aria-label="登记成员" value={agentId} onChange={e=>setAgentId(e.target.value)}>
         <option value="">选择现有成员</option>{store.data.agents.filter(a=>a.kind==='ai'&&!a.removed).map(a=><option key={a.id} value={a.id}>{a.name}</option>)}
       </select>
       <select className="input" aria-label="客户端类型" value={executorId} onChange={e=>setExecutorId(e.target.value)}>
-        <option value="antigravity-adapter">反重力</option><option value="zcode">Zcode</option><option value="opencode">OpenCode · 执行助手</option><option value="kiro">Kiro · 聊天</option>
+        <option value="antigravity-adapter">反重力</option><option value="zcode">Zcode</option><option value="opencode">OpenCode · 执行助手</option><option value="kiro">Kiro · 聊天</option><option value="pi">Pi SDK · 受控工作</option>
       </select>
       <button className="btn" disabled={busy||!agentId} onClick={()=>void run(()=>bridge.register({agentId,executorId}))}>选择工作目录并登记</button>
     </div>
