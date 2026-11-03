@@ -17,6 +17,7 @@ const closeListeners = new Set();
 
 const desktopBridge = {
   isDesktop: true,
+  meeting:(action,payload)=>ipcRenderer.invoke('public:meeting',action,payload),
   openLocalMobile:()=>ipcRenderer.invoke('public:open-mobile'),
   autonomy: { presence: () => ipcRenderer.invoke('autonomy:presence') },
   notifyAuthorityReady:()=>ipcRenderer.send('authority:ready'),

@@ -1,7 +1,7 @@
 {
   "name": "luma-harness-desktop",
   "private": true,
-  "version": "0.2.1",
+  "version": "0.2.2",
   "type": "module",
   "description": "Luma desktop and authoritative multi-agent host",
   "main": "electron/main.cjs",

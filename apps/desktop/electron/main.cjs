@@ -121,6 +121,7 @@ let mainWindow = null;
 let store = null;
 let externalMemoryMemory = null;
 let localMobile = null;
+let meetingRpc = null;
 let credentialsStore = null;
 let chatService = null;
 let codexService = null;
@@ -482,6 +483,7 @@ if (!isMemorySyncMode && app && app.whenReady) {
       bridgeBroker: () => bridgeBroker,
       notify: (channel,data) => { if(mainWindow&&!mainWindow.isDestroyed())mainWindow.webContents.send(channel,data); },
     });
+    meetingRpc = mobileRpc;
     autonomyService.resumeWaiting=async (params,messageId)=>{const run=await mobileRpc.launchReply(params,messageId);await run.completed;};
     autonomyService.start();
     if(process.env.LUMA_DISABLE_LOCAL_MOBILE!=='1'){
@@ -979,6 +981,12 @@ if (ipcMain) {
       }catch(e){return {ok:false,reason:e.message};}
     });
   }
+  ipcMain.handle('public:meeting', (event, action, payload) => {
+    if (!senderOk(event) || !meetingRpc || !['status', 'start', 'pause', 'resume', 'end'].includes(action)) {
+      return { status: 403, body: { error: { message: '会议操作不可用' } } };
+    }
+    return meetingRpc.handle('meeting-' + action, payload);
+  });
   ipcMain.handle('public:open-mobile',async event=>{if(!senderOk(event)||!localMobile)return {ok:false};await shell.openExternal(localMobile.url);return {ok:true};});
   ipcMain.handle('data:load', (event) => {
     if (!senderOk(event)) return { ok: false, state: 'unreadable', raw: null, reason: '调用方不被信任' };

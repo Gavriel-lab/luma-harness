@@ -59,16 +59,22 @@ try{
  await mobile.screenshot({path:path.join(run,'mobile-base.png')});
  await mobile.getByRole('button',{name:'工作台',exact:true}).first().click();
  await mobile.screenshot({path:path.join(run,'mobile-workbench.png')});
+ await page.getByRole('navigation',{name:'空间导航'}).getByRole('button',{name:'会议室',exact:false}).click();
+ const desktopMeeting=page.getByRole('region',{name:'桌面会议室'});
+ await desktopMeeting.getByLabel('主题').fill('Review a synthetic release plan');
+ await desktopMeeting.getByLabel('轮数').fill('1');
+ await desktopMeeting.getByRole('button',{name:'开始会议',exact:true}).click();
  await mobile.getByRole('button',{name:'会议室',exact:true}).click();
- await mobile.getByLabel('主题').fill('Review a synthetic release plan');
- await mobile.getByLabel('轮数').fill('1');
- await mobile.getByRole('button',{name:'开始会议',exact:true}).click();
  for(let i=0;i<100&&meetingCalls<1;i++)await new Promise(resolve=>setTimeout(resolve,50));
  assert.equal(meetingCalls,1);
  await mobile.getByRole('button',{name:'暂停会议',exact:true}).click();
  await mobile.getByLabel('补充意见').fill('Check reproducibility before approval');
  await mobile.getByRole('button',{name:'继续会议',exact:true}).click();
  await mobile.getByRole('heading',{name:'会议结论',exact:true}).waitFor({timeout:20000});
+ await desktopMeeting.getByRole('heading',{name:'会议结论',exact:true}).waitFor({timeout:20000});
+ await page.screenshot({path:path.join(run,'desktop-meeting.png')});
+ await desktopMeeting.getByRole('button',{name:'返回聊天',exact:true}).click();
+ await page.getByText('PUBLIC_API_ROUNDTRIP_OK',{exact:true}).first().waitFor({timeout:15000});
  assert.equal(meetingCalls,3);
  assert.ok(received.slice(-2).every(call=>call.messages.some(m=>m.content?.includes('Check reproducibility before approval'))));
  const meetingFile=path.join(dataDir,'luma-meeting/meeting.json');
@@ -84,7 +90,7 @@ try{
  assert.deepEqual(errors,[]);
  const disk=JSON.parse(fs.readFileSync(path.join(dataDir,'xiaowu-data/data.v1.json'),'utf8'));
  assert.ok(disk.messages.some(m=>m.text==='PUBLIC_API_ROUNDTRIP_OK'&&m.status==='sent'));
- fs.writeFileSync(path.join(run,'result.json'),JSON.stringify({marker:'LUMA_PUBLIC_SMOKE_OK',packaged:!!packaged,modelCalls,desktop:true,mobile:true,providerSelection:true,meeting:true,saved:true,browserErrors:errors},null,2));
+ fs.writeFileSync(path.join(run,'result.json'),JSON.stringify({marker:'LUMA_PUBLIC_SMOKE_OK',packaged:!!packaged,modelCalls,desktop:true,mobile:true,providerSelection:true,meeting:true,desktopMeeting:true,saved:true,browserErrors:errors},null,2));
  console.log(JSON.stringify({marker:'LUMA_PUBLIC_SMOKE_OK',packaged:!!packaged,modelCalls,artifacts:path.relative(root,run)}));
 }catch(error){
  if(mobile){await mobile.screenshot({path:path.join(run,'mobile-failure.png')}).catch(()=>{});fs.writeFileSync(path.join(run,'mobile-failure.txt'),await mobile.locator('body').innerText().catch(()=>''));}

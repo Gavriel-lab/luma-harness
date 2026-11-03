@@ -13,6 +13,8 @@ import type { AppData } from '../types';
  */
 
 export interface DesktopBridge {
+  meeting?: (action: 'status' | 'start' | 'pause' | 'resume' | 'end', payload: Record<string, unknown>) =>
+    Promise<{ status: number; body: unknown }>;
   isDesktop: true;
   openLocalMobile?:()=>Promise<{ok:boolean;reason?:string}>;
   autonomy?: { presence: () => Promise<{running:string|null}> };

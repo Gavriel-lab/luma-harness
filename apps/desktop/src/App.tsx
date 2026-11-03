@@ -3,6 +3,7 @@ import { AlertTriangle, Download, DoorOpen, Moon, PanelRightClose, PanelRightOpe
 import { useAppStore } from './ui/useAppStore';
 import { useModalFocus } from './ui/useModalFocus';
 import { THEMES, themeById } from './ui/themes';
+import { DesktopMeetingRoom } from './components/DesktopMeetingRoom';
 import { SideNav } from './components/SideNav';
 import { ChatPanel } from './components/ChatPanel';
 import { Workbench } from './components/Workbench';
@@ -65,6 +66,8 @@ export default function App() {
   const [memoryOpen, setMemoryOpen] = useState(false);
   const [diaryOpen, setDiaryOpen] = useState(false);
   const [studyOpen, setStudyOpen] = useState(false);
+  const [meetingOpen, setMeetingOpen] = useState(false);
+  const openMeeting = () => { setNavOpen(false); setMeetingOpen(true); };
   const [bgReady, setBgReady] = useState(false);
   const [tabHidden, setTabHidden] = useState(false);
 
@@ -456,12 +459,17 @@ export default function App() {
             store={store}
             onRequestDelete={openConfirm}
             onOpenSettings={openSettings}
+            onOpenMeeting={openMeeting}
+            meetingOpen={meetingOpen}
+            onSelectConversation={() => { setMeetingOpen(false); setNavOpen(false); }}
             onOpenDiary={() => setDiaryOpen(true)}
             onOpenStudy={() => setStudyOpen(true)}
           />
         )}
 
-        <ChatPanel store={store} onOpenMemory={() => setMemoryOpen(true)} />
+        {meetingOpen
+          ? <DesktopMeetingRoom agents={data.agents} onBack={() => setMeetingOpen(false)} />
+          : <ChatPanel store={store} onOpenMemory={() => setMemoryOpen(true)} />}
 
         {!navOpen && (
           <Workbench
@@ -488,6 +496,9 @@ export default function App() {
               store={store}
               onRequestDelete={openConfirm}
               onOpenSettings={openSettings}
+              onOpenMeeting={openMeeting}
+              meetingOpen={meetingOpen}
+              onSelectConversation={() => { setMeetingOpen(false); setNavOpen(false); }}
               onOpenDiary={() => {
                 setNavOpen(false);
                 setDiaryOpen(true);

@@ -1,3 +1,8 @@
+# Verification for public v0.2.2
+
+- The cross-client smoke opens the desktop sidebar Meeting Room, starts a meeting on the desktop, pauses and resumes it with a note on the mobile page, and sees the same conclusion on both clients. It verifies the host meeting file and checks the original chat is still visible after returning.
+- The smoke uses a synthetic local provider and a mobile-sized browser. Real model accounts, physical phones and remote deployments require owner-side verification.
+
 # Verification for public v0.2.1
 
 - Both production frontend builds, mobile type checking, the existing test suite and focused meeting tests passed.

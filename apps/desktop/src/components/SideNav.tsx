@@ -10,6 +10,9 @@ export function SideNav({
   onOpenSettings,
   onOpenDiary,
   onOpenStudy,
+  onOpenMeeting,
+  meetingOpen = false,
+  onSelectConversation,
   embedded = false,
 }: {
   store: Store;
@@ -17,6 +20,9 @@ export function SideNav({
   onOpenSettings?: (agentId?: string) => void;
   onOpenDiary?: () => void;
   onOpenStudy?: () => void;
+  onOpenMeeting?: () => void;
+  meetingOpen?: boolean;
+  onSelectConversation?: () => void;
   embedded?: boolean;
 }) {
   const { data, dispatch } = store;
@@ -28,6 +34,11 @@ export function SideNav({
   const agentsById = new Map(data.agents.map((a) => [a.id, a]));
 
   const countFor = (conversationId: string) => data.messages.filter((m) => m.conversationId === conversationId).length;
+
+  const selectConversation = (conversationId: string) => {
+    dispatch({ type: 'selectConversation', conversationId });
+    onSelectConversation?.();
+  };
 
   const submitAgent = () => {
     if (!name.trim()) return;
@@ -43,11 +54,11 @@ export function SideNav({
         {living.map((c) => (
           <NavItem
             key={c.id}
-            active={data.activeConversationId === c.id}
+            active={!meetingOpen && data.activeConversationId === c.id}
             icon={<Hash size={15} aria-hidden />}
             title={c.title}
             meta={`${countFor(c.id)} 条`}
-            onClick={() => dispatch({ type: 'selectConversation', conversationId: c.id })}
+            onClick={() => selectConversation(c.id)}
           />
         ))}
         {onOpenDiary && (
@@ -68,6 +79,10 @@ export function SideNav({
             onClick={onOpenStudy}
           />
         )}
+        {onOpenMeeting && (
+          <NavItem active={meetingOpen} icon={<MessageSquare size={15} aria-hidden />}
+            title="会议室" meta="工作讨论" onClick={onOpenMeeting} />
+        )}
       </div>
 
       <div className="nav__section">
@@ -77,12 +92,12 @@ export function SideNav({
           return (
             <div key={c.id} style={{ display: 'flex', alignItems: 'stretch', gap: 2 }}>
               <NavItem
-                active={data.activeConversationId === c.id}
+                active={!meetingOpen && data.activeConversationId === c.id}
                 icon={<Avatar agent={agent} />}
                 title={c.title}
                 meta={`${countFor(c.id)} 条`}
                 statusDot={agent?.mode === 'real' ? (agent.connected ? 'live' : 'demo') : 'demo'}
-                onClick={() => dispatch({ type: 'selectConversation', conversationId: c.id })}
+                onClick={() => selectConversation(c.id)}
               />
               {onOpenSettings && agent?.kind === 'ai' && (
                 <button

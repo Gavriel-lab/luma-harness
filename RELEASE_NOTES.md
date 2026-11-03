@@ -1,3 +1,9 @@
+# Luma Harness v0.2.2 — Desktop and Mobile Meeting Room
+
+- Open the Meeting Room directly from the Windows desktop sidebar under Spaces.
+- Desktop and mobile share the meeting session, controls, progress and conclusion through the same host.
+- Download the Windows x64 archive, extract the complete folder and run `Luma Harness.exe`.
+
 # Luma Harness v0.2.1 — Mobile Meeting Room
 
 - Start a meeting from the mobile client, set the round limit, and follow member turns and coordinator summaries.
