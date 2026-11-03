@@ -52,7 +52,7 @@ export async function deleteChatMessage(conversationId: string, messageId: strin
 /**
  * 校验响应是否被 Cloudflare Access 拦截并重定向成了 HTML 登录页
  */
-async function parseJsonResponse<T>(response: Response): Promise<T> {
+export async function parseJsonResponse<T>(response: Response): Promise<T> {
   const contentType = response.headers.get('content-type') || '';
   if (contentType.includes('text/html')) {
     throw new LumaApiError(

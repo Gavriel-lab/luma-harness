@@ -35,8 +35,8 @@ function sanitizePaths(text) {
 /** An owner-authenticated transport into the existing authoritative desktop chat.
  * It never accepts context, model settings, credentials or client-created replies. */
 class MobileRpc {
-  constructor({homeId,getData,getRegistrations,startChat,mutate,notify,validateChat,attachmentsStore,store,getSyncService,getMemoryEngine,diaryService,studyService,autonomyService,momentsService,bridgeBroker}) {
-    Object.assign(this,{homeId,getData,getRegistrations,startChat,mutate,notify,validateChat,attachmentsStore,store,getSyncService,getMemoryEngine,diaryService,studyService,autonomyService,momentsService,bridgeBroker});
+  constructor({homeId,getData,getRegistrations,startChat,mutate,notify,validateChat,attachmentsStore,store,getSyncService,getMemoryEngine,diaryService,studyService,autonomyService,momentsService,bridgeBroker,meetingService}) {
+    Object.assign(this,{homeId,getData,getRegistrations,startChat,mutate,notify,validateChat,attachmentsStore,store,getSyncService,getMemoryEngine,diaryService,studyService,autonomyService,momentsService,bridgeBroker,meetingService});
     this.active = new Map();
     this.queue = Promise.resolve();
   }
@@ -94,11 +94,34 @@ class MobileRpc {
       'moments-comment':['requestId','postId','text','replyToCommentId','replyToAuthorId'],
       'moments-delete':['targetType','targetId'],
       'moments-image':['attachmentId'],
-      'workbench-snapshot':[]
+      'workbench-snapshot':[],
+      'meeting-status':[],
+      'meeting-start':['requestId','meetingId','text','maxRounds'],
+      'meeting-pause':['meetingId'],
+      'meeting-resume':['requestId','meetingId','text'],
+      'meeting-end':['meetingId']
     }[operation];
     if(!allowed || Object.keys(payload).some(k=>!allowed.includes(k)))return fail(400,'invalid_operation','不支持的操作或字段');
     const data=this.getData();
     if(!data || !data.agents?.some(a=>a.id==='agent_owner'))return fail(503,'authority_unavailable','桌面权威存储尚未就绪',true);
+    if (operation.startsWith('meeting-')) {
+      if (!this.meetingService) return fail(503, 'meeting_unavailable', '会议服务尚未就绪', true);
+      const action = operation.slice('meeting-'.length);
+      const needsRequestId = action === 'start' || action === 'resume';
+      const validId = value => typeof value === 'string' && /^[A-Za-z0-9_-]{1,128}$/.test(value);
+      const text = typeof payload.text === 'string' ? payload.text.trim() : '';
+      if (action !== 'status' && !(action === 'start' && payload.meetingId === null) && !validId(payload.meetingId) ||
+          needsRequestId && (!validId(payload.requestId) || typeof payload.text !== 'string' || text.length > 8000) ||
+          action === 'start' && (!text || !Number.isInteger(payload.maxRounds) || payload.maxRounds < 1 || payload.maxRounds > 10)) {
+        return fail(400, 'invalid_meeting_request', '会议请求格式不合法');
+      }
+      try {
+        if (action !== 'status') await this.meetingService.command(action, { ...payload, text });
+        return { status: 200, body: { meeting: this.meetingService.view() } };
+      } catch (error) {
+        return fail(409, 'meeting_conflict', error.code ? '会议状态无法保存或读取，请检查桌面主机' : error.message);
+      }
+    }
     if(operation.startsWith('moments-')) {
       if(!this.momentsService)return fail(503,'moments_unavailable','朋友圈后台服务尚未就绪',true);
       try {

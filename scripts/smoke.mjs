@@ -10,12 +10,20 @@ const {_electron,chromium}=require('playwright');
 const {initialize}=require('./electron/publicConfig.cjs');
 const run=path.join(root,'.local/smoke-'+Date.now()),dataDir=path.join(run,'userData');
 fs.mkdirSync(run,{recursive:true});
-let modelCalls=0,received=[];
+let modelCalls=0,received=[],meetingCalls=0;
 const upstream=http.createServer(async(req,res)=>{
  let raw='';for await(const c of req)raw+=c;
- received.push(JSON.parse(raw));modelCalls++;
+ const payload=JSON.parse(raw);
+ received.push(payload);modelCalls++;
+ const meeting=payload.messages.some(m=>m.content?.includes('会议室自动主持'));
+ if(meeting&&++meetingCalls===1){
+  // Keep the first turn in flight so the UI has to cancel it.
+  await new Promise(resolve=>res.once('close',resolve));
+  return;
+ }
+ const content=meeting?'PUBLIC_MEETING_ROUNDTRIP_OK':'PUBLIC_API_ROUNDTRIP_OK';
  res.writeHead(200,{'content-type':'text/event-stream'});
- res.write('data: '+JSON.stringify({choices:[{delta:{content:'PUBLIC_API_ROUNDTRIP_OK'},finish_reason:null}]})+'\n\n');
+ res.write('data: '+JSON.stringify({choices:[{delta:{content},finish_reason:null}]})+'\n\n');
  res.end('data: [DONE]\n\n');
 });
 await new Promise(resolve=>upstream.listen(0,'127.0.0.1',resolve));
@@ -51,6 +59,24 @@ try{
  await mobile.screenshot({path:path.join(run,'mobile-base.png')});
  await mobile.getByRole('button',{name:'工作台',exact:true}).first().click();
  await mobile.screenshot({path:path.join(run,'mobile-workbench.png')});
+ await mobile.getByRole('button',{name:'会议室',exact:true}).click();
+ await mobile.getByLabel('主题').fill('Review a synthetic release plan');
+ await mobile.getByLabel('轮数').fill('1');
+ await mobile.getByRole('button',{name:'开始会议',exact:true}).click();
+ for(let i=0;i<100&&meetingCalls<1;i++)await new Promise(resolve=>setTimeout(resolve,50));
+ assert.equal(meetingCalls,1);
+ await mobile.getByRole('button',{name:'暂停会议',exact:true}).click();
+ await mobile.getByLabel('补充意见').fill('Check reproducibility before approval');
+ await mobile.getByRole('button',{name:'继续会议',exact:true}).click();
+ await mobile.getByRole('heading',{name:'会议结论',exact:true}).waitFor({timeout:20000});
+ assert.equal(meetingCalls,3);
+ assert.ok(received.slice(-2).every(call=>call.messages.some(m=>m.content?.includes('Check reproducibility before approval'))));
+ const meetingFile=path.join(dataDir,'luma-meeting/meeting.json');
+ const meeting=JSON.parse(fs.readFileSync(meetingFile,'utf8'));
+ assert.equal(meeting.status,'completed');
+ assert.equal(meeting.entries.length,2);
+ assert.equal(meeting.result,'PUBLIC_MEETING_ROUNDTRIP_OK');
+ await mobile.screenshot({path:path.join(run,'mobile-meeting.png')});
  await page.getByRole('button',{name:'成员与接口连接设置',exact:true}).first().click();
  await page.getByTestId('member-setting-agent_coordinator').click();
  await page.getByLabel('接入方式').selectOption('codex-app-server');
@@ -58,7 +84,7 @@ try{
  assert.deepEqual(errors,[]);
  const disk=JSON.parse(fs.readFileSync(path.join(dataDir,'xiaowu-data/data.v1.json'),'utf8'));
  assert.ok(disk.messages.some(m=>m.text==='PUBLIC_API_ROUNDTRIP_OK'&&m.status==='sent'));
- fs.writeFileSync(path.join(run,'result.json'),JSON.stringify({marker:'LUMA_PUBLIC_SMOKE_OK',packaged:!!packaged,modelCalls,desktop:true,mobile:true,providerSelection:true,saved:true,browserErrors:errors},null,2));
+ fs.writeFileSync(path.join(run,'result.json'),JSON.stringify({marker:'LUMA_PUBLIC_SMOKE_OK',packaged:!!packaged,modelCalls,desktop:true,mobile:true,providerSelection:true,meeting:true,saved:true,browserErrors:errors},null,2));
  console.log(JSON.stringify({marker:'LUMA_PUBLIC_SMOKE_OK',packaged:!!packaged,modelCalls,artifacts:path.relative(root,run)}));
 }catch(error){
  if(mobile){await mobile.screenshot({path:path.join(run,'mobile-failure.png')}).catch(()=>{});fs.writeFileSync(path.join(run,'mobile-failure.txt'),await mobile.locator('body').innerText().catch(()=>''));}

@@ -486,3 +486,42 @@ test('书房：手机端能读到桌面写的书（studyService 必须传进 Mob
   assert.equal(full.body.book.sections[0].text,'桌面写的第一段');
   fs.rmSync(dir,{recursive:true,force:true});
 });
+
+test('meeting commands are serialized, tied to a session, and recover paused without replay', async t => {
+  const { MeetingService } = require('./meetingService.cjs');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'luma-meeting-test-'));
+  t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
+  let turns = 0;
+  let stop;
+  const options = {
+    dir,
+    getMembers: () => ['agent_coordinator', 'agent_worker'],
+    prepareMember() {},
+    recoverMember() {},
+    startChat(params, emit) {
+      turns++;
+      stop = () => emit('chat:stream-stopped', {});
+      return { ok: true };
+    },
+    stopChat: () => stop?.(),
+  };
+  const service = new MeetingService(options);
+  const { rpc, data } = fixture();
+  rpc.meetingService = service;
+  const start = { meetingId: null, requestId: 'start_1', text: 'Review a plan', maxRounds: 1 };
+  const [first, duplicate] = await Promise.all([
+    rpc.handle('meeting-start', start), rpc.handle('meeting-start', start),
+  ]);
+  assert.equal(first.status, 200);
+  assert.equal(duplicate.body.meeting.id, first.body.meeting.id);
+  assert.equal(turns, 1);
+  const id = first.body.meeting.id;
+  assert.equal((await rpc.handle('meeting-pause', { meetingId: 'stale' })).status, 409);
+  assert.equal((await rpc.handle('meeting-resume', { meetingId: id, requestId: 'resume_1', text: '', profileId: 'untrusted' })).status, 400);
+  const recovered = new MeetingService(options);
+  assert.equal(recovered.view().status, 'paused');
+  assert.equal(turns, 1);
+  assert.equal((await rpc.handle('meeting-pause', { meetingId: id })).body.meeting.status, 'paused');
+  assert.equal((await rpc.handle('meeting-end', { meetingId: id })).body.meeting.status, 'ended');
+  assert.deepEqual(data.messages, []);
+});

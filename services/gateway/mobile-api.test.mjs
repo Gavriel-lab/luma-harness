@@ -42,3 +42,35 @@ test('workbench snapshot is read-only and forwards to relay cleanly',async()=>{l
 const r1=await w.fetch(new Request('https://luma.test/api/workbench'),env);assert.equal(r1.status,200);assert.deepEqual(forwarded,{operation:'workbench-snapshot',payload:{}});
 forwarded=undefined;const r2=await w.fetch(new Request('https://luma.test/api/workbench',{method:'POST',headers:{origin:'https://luma.test'},body:'{}'}),env);assert.notEqual(r2.status,200);assert.equal(forwarded,undefined);
 });
+
+test('meeting commands use authenticated, same-origin gateway and the real relay admission list', async () => {
+  const payload = { meetingId: 'meeting_1', requestId: 'resume_1', text: 'Review the updated proposal' };
+  let calls = 0;
+  let relay;
+  const ws = {
+    readyState: 1,
+    deserializeAttachment: () => ({ authenticated: true }),
+    send(raw) {
+      calls++;
+      const message = JSON.parse(raw);
+      assert.equal(message.operation, 'meeting-resume');
+      assert.deepEqual(message.payload, payload);
+      queueMicrotask(() => relay.webSocketMessage(ws, JSON.stringify({
+        type: 'response', id: message.id, status: 200, body: { meeting: { status: 'running' } },
+      })));
+    },
+  };
+  relay = new LumaRelay({ getWebSockets: () => [ws] }, { RELAY_TOKEN: secret, HOME_ID: 'h' });
+  const env = { LUMA_RELAY_TOKEN: secret, LUMA_RELAY: relay };
+  const request = origin => new Request('https://luma.test/api/meeting/resume', {
+    method: 'POST', headers: { origin }, body: JSON.stringify(payload),
+  });
+  const worker = createWorker(auth);
+  assert.equal((await worker.fetch(request('https://elsewhere.test'), env)).status, 403);
+  assert.equal((await createWorker(async () => { throw Error('no identity'); }).fetch(request('https://luma.test'), env)).status, 503);
+  assert.equal(calls, 0);
+  const response = await worker.fetch(request('https://luma.test'), env);
+  assert.equal(response.status, 200);
+  assert.deepEqual(await response.json(), { meeting: { status: 'running' } });
+  assert.equal(calls, 1);
+});

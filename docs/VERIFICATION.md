@@ -1,3 +1,10 @@
+# Verification for public v0.2.1
+
+- Both production frontend builds, mobile type checking, the existing test suite and focused meeting tests passed.
+- Authenticated gateway/relay tests cover forwarding and rejection of unauthenticated or cross-origin commands. The desktop test covers duplicate start, stale session commands, restart-to-paused and chat isolation.
+- The packaged Windows EXE passed the mobile browser smoke with a synthetic local provider. The test pauses an in-flight meeting turn, resumes with a note, sees the coordinator conclusion, and verifies the saved meeting and original chat reply on disk.
+- Physical phones, real API accounts and live Cloudflare/VPS deployments require owner-side verification.
+
 # Verification for public v0.2.0
 
 Checked on Windows, 2026-10-24, using isolated public-export data and temporary projects. The private installation and its data were not modified.

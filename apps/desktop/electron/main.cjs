@@ -32,6 +32,7 @@ const { createModelForwarder } = require('./modelForwarder.cjs');
 const { BridgeLauncher } = require('./bridgeLauncher.cjs');
 const { CredentialsStore } = require('./credentialsStore.cjs');
 const { ChatService } = require('./chatService.cjs');
+const { MeetingService } = require('./meetingService.cjs');
 const { MobileRpc, MobileRelay } = require('./mobileRelay.cjs');
 const { DiaryService } = require('./diaryService.cjs');
 const { StudyService } = require('./studyService.cjs');
@@ -433,7 +434,37 @@ if (!isMemorySyncMode && app && app.whenReady) {
       attachmentsStore,
       isBusy: agentId => diaryService?.isWriting(agentId) || memberHasActiveChat(agentId),
     });
+    const meetingProfile = id => {
+      const data = getAuthoritativeData();
+      const member = data?.agents.find(a => a.id === id && a.kind === 'ai' && a.mode === 'real' && !a.removed);
+      const profile = data?.chatProfiles.find(p => p.id === member?.profileId);
+      if (!member || !profile || ['demo', 'codex-app-server'].includes(profile.providerType) ||
+          !validateChatProfile(profile).ok || (profile.credentialRef && profile.credentialRef !== `cred_${id}`)) return null;
+      return { member, profile: { ...profile, credentialRef: `cred_${id}` } };
+    };
+    const meetingService = new MeetingService({
+      dir: path.join(app.getPath('userData'), 'luma-meeting'),
+      getMembers: () => (getAuthoritativeData()?.agents || []).filter(a => meetingProfile(a.id)).map(a => a.id),
+      prepareMember: id => {
+        if (!meetingProfile(id)) throw Error('成员会议连接不可用');
+      },
+      recoverMember: (_id, requestId) => { if (requestId) chatService.stopStream(requestId); },
+      stopChat: requestId => chatService.stopStream(requestId),
+      startChat: ({ requestId, conversationId, targetAgentId, currentText }, emit) => {
+        const route = meetingProfile(targetAgentId);
+        if (!route) return { ok: false, reason: '成员会议连接不可用' };
+        void chatService.startStream({
+          requestId, conversationId, targetAgentId, profile: route.profile,
+          messages: [
+            { role: 'system', content: route.member.systemPrompt?.trim() || '参加工作会议，提供有依据的建议。' },
+            { role: 'user', content: currentText },
+          ],
+        }, emit).catch(() => emit('chat:stream-error', { error: '成员会议连接异常' }));
+        return { ok: true };
+      },
+    });
     const mobileRpc = new MobileRpc({
+      meetingService,
       homeId,
       getData: getAuthoritativeData,
       getRegistrations: () => bridgeBroker?.data?.registrations || {},

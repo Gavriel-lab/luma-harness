@@ -1,3 +1,13 @@
+# Luma Harness v0.2.1 — Mobile Meeting Room
+
+- Start a meeting from the mobile client, set the round limit, and follow member turns and coordinator summaries.
+- Pause, add a note and resume, or end the meeting. Interrupted meetings reopen paused. The host saves the current discussion and conclusion under its data directory.
+- Meeting turns use each member's compatible API Profile. Configure an API Profile for the coordinator before starting. Existing CLI chat and work execution are configured separately.
+- The mobile gateway and relay forward meeting controls through the existing owner-authenticated channel. Update the desktop host, gateway and relay together for remote access.
+- Discussion stays separate from approval and dispatch in Workbench. The optional oil painting pack adds a meeting entry in its Workbench view.
+
+See [deployment](docs/DEPLOYMENT.md) and [verification](docs/VERIFICATION.md).
+
 # Luma Harness v0.2.0 — Embedded Pi and acceptance workflow
 
 The public desktop/mobile Harness now includes Pi execution and the collaboration approval/review/handoff improvements, with generic configurable members and owner-supplied providers.

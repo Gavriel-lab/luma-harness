@@ -27,6 +27,8 @@ Work events remain in the backend report channel. Collaborative project handoffs
 
 The host is the single source of truth. The cloud path forwards operations; it does not own a second chat history or write directly to the host's data file. The local preview also forwards the same MobileRpc operations.
 
+The mobile Meeting Room calls owner-authenticated MobileRpc operations through the same local adapter or remote gateway and relay. The host derives participants from compatible saved API Profiles and uses the configured coordinator for round summaries. It sends meeting context and the member's configured system prompt to that member's API transport. The current meeting is saved separately in `luma-meeting/meeting.json` under the host data directory. Interrupted meetings reopen paused and require an explicit resume. Meeting controls target a specific session, and repeated start/resume requests are deduplicated for the current command. Meetings produce discussion and a conclusion for the owner. Work approval and dispatch remain in Workbench.
+
 ## Identity and membership
 
 `agent_owner` identifies the human owner. `agent_coordinator` identifies the coordinator capability. These protocol IDs are independent of displayed names. Additional AI IDs are arbitrary stable `agent_*` identifiers. Member settings add/remove members; runtime `/api/members` determines the mobile roster. There is no fixed worker count or persona assignment.

@@ -56,6 +56,8 @@ node scripts/cloud-secret.mjs
 
 The relay URL is owner-configured in a protected host file. The host requires WSS, the fixed relay path, the same home ID, and a 64-character secret file within the dedicated relay directory. No browser field can replace this address or token.
 
+For the Meeting Room, update the desktop host, relay and gateway together, including the rebuilt mobile assets. Configure a compatible API Profile for the coordinator and participating members. After owner login, try a short meeting and verify pause, resume with a note, and end or completion. The host continues the meeting when the phone page closes. Back up the full host data directory to retain the current meeting, including `luma-meeting/meeting.json`.
+
 Music and speech are optional external integrations. They return unavailable until you configure your own backend/keys/voice. No shared music server, voice reference or private service is bundled.
 
 ## VPS authority

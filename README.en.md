@@ -110,6 +110,8 @@ The desktop toolbar's **“手机页面预览” (Mobile page preview)** opens a
 
 For remote phone access, deploy your own Cloudflare gateway, Access authentication, and relay, then open the gateway address in your phone browser. The phone is a client of the running host, which must stay online. See [Mobile deployment](docs/DEPLOYMENT.md#remote-phone-your-own-cloudflare-gateway-and-relay) for resources, commands, and acceptance checks.
 
+Open **会议室 (Meeting Room)** in mobile navigation and enter a topic and round limit. The coordinator hosts, and members with compatible API Profiles take turns. Pause, add a note before resuming, or end the meeting. The host saves the current meeting and its conclusion separately and keeps running when the page is closed. Use the conclusion to draft a work plan and approve dispatch through Workbench. Meeting turns use API Profiles. CLI chat and work execution keep their existing configuration.
+
 ## Give the repository to your AI
 
 You can give this prompt and the repository link to your AI coding assistant:

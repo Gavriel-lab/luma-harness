@@ -41,6 +41,9 @@ export function routeOperation(path,method,url){
   if(method==='POST'&&path==='/api/study/section-hidden')return {operation:'study-section-hidden',payload:null};
   if(method==='POST'&&path==='/api/study/section-rewrite')return {operation:'study-section-rewrite',payload:null};
   if(method==='POST'&&path==='/api/study/cancel-rewrite')return {operation:'study-cancel-rewrite',payload:null};
+ if(method==='GET'&&path==='/api/meeting')return {operation:'meeting-status',payload:{}};
+ const meetingAction=/^\/api\/meeting\/(start|pause|resume|end)$/.exec(path);
+ if(method==='POST'&&meetingAction)return {operation:'meeting-'+meetingAction[1],payload:null};
  if(method==='GET'&&path==='/api/workbench')return {operation:'workbench-snapshot',payload:{}};
  return null;
 }
@@ -68,7 +71,7 @@ export async function forwardMobile(request,env,operation){
   })).filter(a => a.dataBase64.length > 0) : undefined;
   operation.payload={requestId:body.requestId,text:body.text,location:body.location,...(attachments?.length ? { attachments } : {})};
  }
- if(operation.operation==='delete-message'||operation.operation==='save-memory'||operation.operation==='diary-generate'||operation.operation==='diary-settings-set'||operation.operation==='autonomy-settings'||operation.operation==='autonomy-wake'||operation.operation==='moments-like'||operation.operation==='moments-comment'||operation.operation==='moments-delete'||operation.operation==='study-create'||operation.operation==='study-append'||operation.operation==='study-annotate'||operation.operation==='study-mark-dry'||operation.operation==='study-revision'||operation.operation==='study-section-hidden'||operation.operation==='study-section-rewrite'||operation.operation==='study-cancel-rewrite'){
+ if((operation.operation.startsWith('meeting-')&&operation.payload===null)||operation.operation==='delete-message'||operation.operation==='save-memory'||operation.operation==='diary-generate'||operation.operation==='diary-settings-set'||operation.operation==='autonomy-settings'||operation.operation==='autonomy-wake'||operation.operation==='moments-like'||operation.operation==='moments-comment'||operation.operation==='moments-delete'||operation.operation==='study-create'||operation.operation==='study-append'||operation.operation==='study-annotate'||operation.operation==='study-mark-dry'||operation.operation==='study-revision'||operation.operation==='study-section-hidden'||operation.operation==='study-section-rewrite'||operation.operation==='study-cancel-rewrite'){
   const raw=await request.text();if(raw.length>65536)return new Response(JSON.stringify({error:{code:'invalid_request',message:'内容过长',retryable:false}}),{status:400,headers:{'content-type':'application/json','cache-control':'no-store'}});
   operation.payload=raw?JSON.parse(raw):{};
  }
